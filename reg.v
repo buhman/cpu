@@ -13,12 +13,10 @@ module int_regs
 
    always @(posedge clk) begin
       if (wen && (rd_addr != 0)) begin
-         $display("%t reg write: %d %d", $time, rd_addr, rd_wdata);
          regs[rd_addr - 1] <= rd_wdata;
       end
    end
 
    assign rs1_rdata = rs1_addr ? regs[rs1_addr - 1] : 0;
    assign rs2_rdata = rs2_addr ? regs[rs2_addr - 1] : 0;
-
 endmodule

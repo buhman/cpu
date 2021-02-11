@@ -6,12 +6,15 @@ module control
    input [6:0]      op_code,
    input [2:0]      funct3,
    input [6:0]      funct7,
-   output wire      op_illegal,
+   output           op_illegal,
    output reg       alu_imm,
    output reg [2:0] alu_op,
    output reg       alu_alt,
    output reg       reg_wen,
-   output reg [1:0] pc_imm = 0
+   output reg [1:0] pc_imm = 0,
+   output reg       dmem_write,
+   output reg       dmem_read,
+   output           dmem_reg
    );
 
    wire [4:0]  base;
@@ -19,6 +22,8 @@ module control
 
    assign base = op_code[6:2];
    assign op_illegal = ((op_code[1:0] != 2'b11) | base_illegal);
+
+   assign dmem_reg = dmem_read;
 
    always @* begin
       case (base)
@@ -29,6 +34,8 @@ module control
            alu_alt = funct7[5];
            reg_wen = 1;
            pc_imm = 2'b0;
+           dmem_read = 0;
+           dmem_write = 0;
         end
         `INS_OP: begin
            base_illegal = 0;
@@ -37,6 +44,8 @@ module control
            alu_alt = funct7[5];
            reg_wen = 1;
            pc_imm = 2'b0;
+           dmem_read = 0;
+           dmem_write = 0;
         end
         `INS_BRANCH: begin
            base_illegal = 0;
@@ -79,6 +88,19 @@ module control
                 pc_imm = 2'b0;
              end
            endcase
+           dmem_read = 0;
+           dmem_write = 0;
+        end
+        `INS_LOAD,
+        `INS_STORE: begin
+           base_illegal = 0;
+           alu_imm = 1;
+           alu_op = `ALU_ADD;
+           alu_alt = 0;
+           reg_wen = 0;
+           pc_imm = 2'b0;
+           dmem_read = (base == `INS_LOAD);
+           dmem_write = (base == `INS_STORE);
         end
         default: begin
            base_illegal = 1;
@@ -87,6 +109,8 @@ module control
            alu_alt = 0;
            reg_wen = 0;
            pc_imm = 2'b0;
+           dmem_read = 0;
+           dmem_write = 0;
         end
       endcase
    end

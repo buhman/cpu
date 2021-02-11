@@ -1,8 +1,8 @@
-module imem
+module dmem
   (
    input             clk,
-   input             write_en,
-   input             read_en,
+   input             write,
+   input             read,
    input [7:0]       addr,
    input [31:0]      wdata,
    output reg [31:0] rdata
@@ -11,11 +11,11 @@ module imem
    reg [31:0] mem [0:255];
 
    always @(posedge clk) begin
-      if (write_en) begin
+      if (write) begin
          mem[addr] <= wdata;
       end
 
-      if (read_en) begin
+      if (read) begin
          rdata <= mem[addr];
       end
    end

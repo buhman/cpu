@@ -8,7 +8,7 @@ module imem
    reg [31:0] mem [0:255];
 
    initial begin
-      $readmemh("branch_test_fib.hex", mem, 0, 7);
+      $readmemh("load_store_test_fib.hex", mem, 0, 9);
    end
 
    always @(posedge clk) begin

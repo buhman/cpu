@@ -5,46 +5,48 @@ module cpu
    input             clk,
    output [31:0]     imem_addr,
    input [31:0]      imem_data,
-   output reg [31:0] alu_out,
-   output [6:0]      leds_out
+   output            dmem_write,
+   output            dmem_read,
+   output [31:0]     dmem_addr,
+   input [31:0]      dmem_rdata,
+   output [31:0]     dmem_wdata,
    );
 
    // reset
 
    reg          reset = 1;
-   reg          halt;
+   reg [31:0]   pc;
+   wire [31:0]  pc_nxt;
+   wire [31:0]  pc_incr;
 
-   reg [31:0]        pc;
-   wire [31:0]       pc_nxt;
-   reg [31:0]        pc_incr;
+   assign pc_incr = pc_imm[0] && pc_imm[1] == alu_zero ? imm : 4;
 
-   always @(pc_imm[0]) begin
-      pc_incr = pc_imm[0] && pc_imm[1] == alu_zero ? imm : 4;
-
-      if (pc_imm[0])
-        $display("branch %h %h %h take:%d", imem_data, imm, imm+pc, alu_zero == pc_imm[1]);
-   end
+   /*
+   always @(pc_incr)
+     if (pc_imm[0])
+       $display("%t branch %h %h %h take:%d pc_incr:%d", $time, imem_data, imm, imm+pc, alu_zero == pc_imm[1], pc_incr);
+    */
 
    assign pc_nxt = pc + pc_incr;
    assign imem_addr = pc_nxt;
-
-   assign leds_out[0] = reset;
-   assign leds_out[6:1] = pc[6:0];
 
    always @(posedge clk) begin
       if (reset) begin
          pc <= -4;
          reset <= 0;
-         halt <= 0;
-      end else begin
-        pc <= pc_nxt;
-      end
+      end else
+         pc <= pc_nxt;
    end
 
-   //
+   // decode
 
-   wire [6:0]  op_code;
-   assign op_code = imem_data[6:0];
+   wire [6:0]  op_code = imem_data[6:0];
+   wire [31:7] ins_i = imem_data[31:7];
+   wire [2:0]  funct3 = imem_data[14:12];
+   wire [6:0]  funct7 = imem_data[31:25];
+   wire [4:0]  rd_addr = imem_data[11:7];
+   wire [4:0]  rs1_addr = imem_data[19:15];
+   wire [4:0]  rs2_addr = imem_data[24:20];
 
    // imm
 
@@ -54,8 +56,6 @@ module cpu
                .imm_type(imm_type)
                );
 
-   wire [31:7] ins_i;
-   assign ins_i[31:7] = imem_data[31:7];
    wire [31:0] imm;
 
    imm_gen ig (.imm_type(imm_type),
@@ -63,18 +63,15 @@ module cpu
                .imm(imm)
                );
 
-   //
+   // control
 
-   wire [2:0]  funct3;
-   wire [6:0]  funct7;
-   assign funct3 = imem_data[14:12];
-   assign funct7 = imem_data[31:25];
    wire        op_illegal;
    wire        alu_imm;
    wire [2:0]  alu_op;
    wire        alu_alt;
    wire        reg_wen;
    wire [1:0]  pc_imm;
+   wire        dmem_reg;
 
    control c (.op_code(op_code),
               .funct3(funct3),
@@ -84,14 +81,13 @@ module cpu
               .alu_op(alu_op),
               .alu_alt(alu_alt),
               .reg_wen(reg_wen),
-              .pc_imm(pc_imm)
+              .pc_imm(pc_imm),
+              .dmem_write(dmem_write),
+              .dmem_read(dmem_read),
+              .dmem_reg(dmem_reg)
               );
 
    // regs
-
-   wire [4:0] rd_addr = imem_data[11:7];
-   wire [4:0] rs1_addr = imem_data[19:15];
-   wire [4:0] rs2_addr = imem_data[24:20];
 
    wire [31:0] rd_wdata;
    wire [31:0] rs1_rdata;
@@ -106,9 +102,6 @@ module cpu
                 .rs1_rdata(rs1_rdata),
                 .rs2_rdata(rs2_rdata)
                 );
-
-   always @(posedge clk)
-     $display("%t clk:%d wen:%d rs1:%d rs2:%d rd:%d %h %h %h", $time, clk, reg_wen, rs1_addr, rs2_addr, rd_addr, pc, pc_nxt, imem_data);
 
    // alu
 
@@ -127,16 +120,16 @@ module cpu
                .zero(alu_zero)
                );
 
+   // dmem
+
+   assign dmem_addr = alu_y;
+   assign dmem_wdata = rs2_rdata;
+   assign rd_wdata = dmem_reg ? dmem_rdata : alu_y;
+
+   // simulation
+
    always @(posedge clk) begin
-      //$display("pc %h idata %h pc_nxt %h", pc, imem_data, pc_nxt);
-      //$display("regs wen:%d rd:%d rs1:%d rs2:%d", reg_wen, rd_addr, rs1_addr, rs2_addr);
-   end
-
-   assign rd_wdata = alu_y;
-
-   always @(negedge clk) begin
-      //$display("alu %b %b a:%d b:%d y:%d", alu_op, alu_alt, alu_a, alu_b, alu_y);
-      alu_out <= alu_y;
+      //$display("%t wen:%d rs1:%d/%d rs2:%d/%d rd:%d/%d %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, imem_data);
    end
 
 endmodule
