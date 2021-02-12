@@ -45,7 +45,7 @@ module imm_ins
         `INS_OP_IMM: imm_type = `IMM_I_TYPE;
         //`INS_OP: imm_type = `IMM_R_TYPE;
         `INS_JALR: imm_type = `IMM_I_TYPE;
-        `INS_JAL: imm_type = `IMM_U_TYPE;
+        `INS_JAL: imm_type = `IMM_J_TYPE;
         //`INS_SYSTEM: imm_type = `IMM_I_TYPE;
         default: imm_type = 3'b0;
       endcase

@@ -14,7 +14,9 @@ module dmem
       if (write) begin
          mem[addr] <= wdata;
       end
+   end
 
+   always @(negedge clk) begin
       if (read) begin
          rdata <= mem[addr];
       end

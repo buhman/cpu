@@ -31,3 +31,9 @@
 `define INS_JALR   5'b11001
 `define INS_JAL    5'b11011
 `define INS_SYSTEM 5'b11100
+
+`define PC_IMM_4 3'b000
+`define PC_IMM_BNZ 3'b001
+`define PC_IMM_BZ 3'b011
+`define PC_IMM_JAL 3'b101
+`define PC_IMM_JALR 3'b111
