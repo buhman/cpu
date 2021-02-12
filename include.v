@@ -37,3 +37,6 @@
 `define PC_IMM_BZ 3'b011
 `define PC_IMM_JAL 3'b101
 `define PC_IMM_JALR 3'b111
+
+`define IMEM_INIT_PATH "fib.hex"
+`define IMEM_INIT_LEN 12

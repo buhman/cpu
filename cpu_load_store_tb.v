@@ -16,7 +16,7 @@ module test_imem
    end
 endmodule
 
-module cpu_branch_tb;
+module cpu_load_store_tb;
 
    reg clk = 0;
    always #2 clk = !clk;
@@ -42,6 +42,8 @@ module cpu_branch_tb;
             .rdata(dmem_rdata)
             );
 
+   wire [31:0] pc_out;
+
    cpu c (.clk(clk),
           .imem_addr(imem_addr),
           .imem_data(imem_data),
@@ -49,14 +51,15 @@ module cpu_branch_tb;
           .dmem_read(dmem_read),
           .dmem_addr(dmem_addr),
           .dmem_wdata(dmem_wdata),
-          .dmem_rdata(dmem_rdata)
+          .dmem_rdata(dmem_rdata),
+          .pc_out(pc_out)
           );
 
    initial begin
       #6000 $finish;
    end
 
-   //initial
-   //  $monitor("%t %d %h %h", $time, clk, imem_addr, imem_data);
+   //always @(posedge clk)
+     //$display("%t out %h %h", $time, pc_out, imem_data);
 
 endmodule

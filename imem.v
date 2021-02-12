@@ -1,3 +1,5 @@
+`include "include.v"
+
 module imem
   (
    input             clk,
@@ -8,7 +10,7 @@ module imem
    reg [31:0] mem [0:255];
 
    initial begin
-      $readmemh("func.hex", mem, 0, 33);
+      $readmemh(`IMEM_INIT_PATH, mem, 0, `IMEM_INIT_LEN);
    end
 
    always @(posedge clk) begin

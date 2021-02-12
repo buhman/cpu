@@ -78,7 +78,7 @@ module control
                 pc_imm = 3'b11; // (is not one)
              end
              `FUNCT3_BLTU: begin
-                alu_op = `ALU_SLT;
+                alu_op = `ALU_SLTU;
                 alu_alt = 0;
                 pc_imm = 3'b01; // (is one)
              end

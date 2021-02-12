@@ -1,21 +1,21 @@
-set_io mem0 B1
-set_io mem1 B2
-set_io mem2 C1
-set_io mem3 C2
-set_io mem4 D1
-set_io mem5 D2
+set_io probe0 B1
+set_io probe1 B2
+set_io probe2 C1
+set_io probe3 C2
+set_io probe4 D1
+set_io probe5 D2
 
-set_io mem6 E2
-set_io mem7 F1
-set_io mem8 F2
-set_io mem9 G1
-set_io memA G2
-set_io memB H1
+set_io probe6 E2
+set_io probe7 F1
+set_io probe8 F2
+set_io probe9 G1
+set_io probeA G2
+set_io probeB H1
 
-set_io memC H2
-set_io memD K1
-set_io memE J2
-set_io memF J1
+set_io probeC H2
+set_io probeD K1
+set_io probeE J2
+set_io probeF J1
 
 set_io --warn-no-port led1 B5
 set_io --warn-no-port led2 B4

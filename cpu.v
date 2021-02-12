@@ -2,14 +2,15 @@
 
 module cpu
   (
-   input             clk,
-   output [31:0]     imem_addr,
-   input [31:0]      imem_data,
-   output            dmem_write,
-   output            dmem_read,
-   output [31:0]     dmem_addr,
-   input [31:0]      dmem_rdata,
-   output [31:0]     dmem_wdata
+   input         clk,
+   output [31:0] imem_addr,
+   input [31:0]  imem_data,
+   output        dmem_write,
+   output        dmem_read,
+   output [31:0] dmem_addr,
+   input [31:0]  dmem_rdata,
+   output [31:0] dmem_wdata,
+   output [31:0] pc_out
    );
 
    // reset
@@ -21,6 +22,8 @@ module cpu
    reg [31:0]   pc = -4;
    wire [31:0]  pc_nxt;
    reg [31:0]   pc_incr;
+
+   assign pc_out = pc;
 
    always @* begin
       case (pc_imm)
@@ -142,7 +145,8 @@ module cpu
    // simulation
 
    always @(posedge clk) begin
-      $display("%t wen:%d rs1:%d/%d rs2:%d/%d rd:%d/%d %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
+      $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
+      //$display("%t %h %h", $time, pc, ins);
    end
 
 endmodule

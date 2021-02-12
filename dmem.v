@@ -1,10 +1,10 @@
 module dmem
   (
-   input             clk,
-   input             write,
-   input             read,
-   input [7:0]       addr,
-   input [31:0]      wdata,
+   input         clk,
+   input         write,
+   input         read,
+   input [7:0]   addr,
+   input [31:0]  wdata,
    output reg [31:0] rdata
    );
 
@@ -14,9 +14,7 @@ module dmem
       if (write) begin
          mem[addr] <= wdata;
       end
-   end
 
-   always @(negedge clk) begin
       if (read) begin
          rdata <= mem[addr];
       end
