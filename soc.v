@@ -8,8 +8,10 @@ module soc
     output pc_mosi,
     output imem_data_cs,
     output imem_data_mosi,
-    output reg dmem_wdata_cs,
-    output dmem_wdata_mosi
+    output dmem_wdata_cs,
+    output dmem_wdata_mosi,
+    output dmem_rdata_cs,
+    output dmem_rdata_mosi
     );
 
    wire [31:0] imem_data;
@@ -83,12 +85,15 @@ module soc
                .mosi(dmem_wdata_mosi),
                .cs(dmwd_cs)
                );
+   assign dmem_wdata_cs = dmem_write ? dmwd_cs : 1;
 
-   always @* begin
-      if (dmem_write)
-        dmem_wdata_cs = dmwd_cs;
-      else
-        dmem_wdata_cs = 1;
-   end
+   wire        dmrd_cs;
+   spi dmrd_s (.data(dmem_rdata),
+               .sck(spi_sck),
+               .mosi(dmem_rdata_mosi),
+               .cs(dmrd_cs)
+               );
+   assign dmem_rdata_cs = dmem_read ? dmrd_cs : 1;
+
 
 endmodule

@@ -27,8 +27,10 @@ module cpu
 
    always @* begin
       case (pc_imm)
+        `PC_IMM_0: pc_incr = 0;
         `PC_IMM_4: pc_incr = 4;
-        `PC_IMM_BNZ, `PC_IMM_BZ: pc_incr = pc_imm[1] == alu_zero ? imm : 4;
+        `PC_IMM_BNZ: pc_incr = !alu_zero ? imm : 4;
+        `PC_IMM_BZ: pc_incr = alu_zero ? imm : 4;
         `PC_IMM_JAL: pc_incr = imm;
         `PC_IMM_JALR: pc_incr = imm + rs1_rdata;
       endcase
@@ -86,7 +88,9 @@ module cpu
    wire        alu_apc;
    wire        alu_b4;
 
-   control c (.op_code(op_code),
+   control c (.clk(clk),
+              .reset(reset),
+              .op_code(op_code),
               .funct3(funct3),
               .funct7(funct7),
               .op_illegal(op_illegal),
@@ -140,12 +144,17 @@ module cpu
 
    assign dmem_addr = alu_y;
    assign dmem_wdata = rs2_rdata;
+
    assign rd_wdata = dmem_reg ? dmem_rdata : alu_y;
 
    // simulation
 
    always @(posedge clk) begin
+      if (dmem_read)
+        $display("%t dmem_read addr:%h rdata:%h", $time, dmem_reg, dmem_addr, dmem_rdata);
       $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
+      if (dmem_write)
+        $display("%t dmem_write addr:%h wdata:%h", $time, dmem_addr, dmem_wdata);
       //$display("%t %h %h", $time, pc, ins);
    end
 

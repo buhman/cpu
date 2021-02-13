@@ -39,6 +39,8 @@ module top
    wire   imem_data_cs;
    wire   dmem_wdata_mosi;
    wire   dmem_wdata_cs;
+   wire   dmem_rdata_mosi;
+   wire   dmem_rdata_cs;
 
    soc s (.clk(hwclk),
           .cpu_clk(cpu_clk),
@@ -48,7 +50,9 @@ module top
           .imem_data_mosi(imem_data_mosi),
           .imem_data_cs(imem_data_cs),
           .dmem_wdata_mosi(dmem_wdata_mosi),
-          .dmem_wdata_cs(dmem_wdata_cs)
+          .dmem_wdata_cs(dmem_wdata_cs),
+          .dmem_rdata_mosi(dmem_rdata_mosi),
+          .dmem_rdata_cs(dmem_rdata_cs)
           );
 
    // io
@@ -71,5 +75,7 @@ module top
    assign probe5 = imem_data_mosi;
    assign probe6 = dmem_wdata_cs;
    assign probe7 = dmem_wdata_mosi;
+   assign probe8 = dmem_rdata_cs;
+   assign probe9 = dmem_rdata_mosi;
 
 endmodule
