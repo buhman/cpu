@@ -6,7 +6,18 @@ PACKAGE = ct256
 PINMAP = sigma.pcf
 
 # Files
-FILES = cpu.v alu.v reg.v imem.v imm.v control.v dmem.v top.v soc.v spi.v divider.v
+FILES = cpu.v
+FILES += alu.v
+FILES += reg.v
+FILES += imem.v
+FILES += imm.v
+FILES += control.v
+FILES += dmem.v
+FILES += top.v
+FILES += soc.v
+FILES += spi.v
+FILES += divider.v
+FILES += word_decode.v
 
 .PHONY: all clean prog
 

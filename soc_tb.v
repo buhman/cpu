@@ -18,7 +18,7 @@ module soc_tb;
    initial begin
       /*#1 $display("%h", a + b);
        #1 $finish;*/
-      #300000 $finish;
+      #9000 $finish;
    end
 
 endmodule

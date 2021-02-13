@@ -12,11 +12,12 @@ module dmem
 
    always @(posedge clk) begin
       if (write) begin
-         $display("%t WRITE addr:%h wdata:%h", $time, addr, wdata);
+         $display("%t dmem_write addr:%h wdata:%h %d %d", $time, addr, wdata, read, write);
          mem[addr] <= wdata;
       end
 
       if (read) begin
+         $display("%t dmem_read addr:%h rdata:%h %d %d", $time, addr, mem[addr], read, write);
          rdata <= mem[addr];
       end
    end

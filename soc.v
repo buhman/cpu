@@ -95,5 +95,4 @@ module soc
                );
    assign dmem_rdata_cs = dmem_read ? dmrd_cs : 1;
 
-
 endmodule

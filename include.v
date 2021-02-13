@@ -21,6 +21,10 @@
 `define FUNCT3_BLTU 3'b110
 `define FUNCT3_BGEU 3'b111
 
+`define ENCDEC_BYTE 2'b00
+`define ENCDEC_HALF 2'b01
+`define ENCDEC_WORD 2'b10
+
 `define INS_LOAD   5'b00000
 `define INS_STORE  5'b01000
 `define INS_BRANCH 5'b11000
@@ -39,5 +43,5 @@
 `define PC_IMM_JAL 3'b100
 `define PC_IMM_JALR 3'b101
 
-`define IMEM_INIT_PATH "func.hex"
-`define IMEM_INIT_LEN 34
+`define IMEM_INIT_PATH "word3.hex"
+`define IMEM_INIT_LEN 31

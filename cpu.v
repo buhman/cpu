@@ -142,19 +142,24 @@ module cpu
 
    // dmem
 
+   wire [31:0] dmem_decode;
+   wire        dmem_unaligned;
+   word_decode wd (.funct3(funct3),
+                   .addr(dmem_addr[1:0]),
+                   .data(dmem_rdata),
+                   .decode(dmem_decode),
+                   .unaligned(dmem_unaligned)
+                   );
+
    assign dmem_addr = alu_y;
    assign dmem_wdata = rs2_rdata;
 
-   assign rd_wdata = dmem_reg ? dmem_rdata : alu_y;
+   assign rd_wdata = dmem_reg ? dmem_decode : alu_y;
 
    // simulation
 
    always @(posedge clk) begin
-      if (dmem_read)
-        $display("%t dmem_read addr:%h rdata:%h", $time, dmem_reg, dmem_addr, dmem_rdata);
       $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
-      if (dmem_write)
-        $display("%t dmem_write addr:%h wdata:%h", $time, dmem_addr, dmem_wdata);
       //$display("%t %h %h", $time, pc, ins);
    end
 
