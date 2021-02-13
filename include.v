@@ -43,5 +43,5 @@
 `define PC_IMM_JAL 3'b100
 `define PC_IMM_JALR 3'b101
 
-`define IMEM_INIT_PATH "word3.hex"
-`define IMEM_INIT_LEN 31
+`define IMEM_INIT_PATH "sw.hex"
+`define IMEM_INIT_LEN 11

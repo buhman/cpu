@@ -5,7 +5,7 @@ module cpu
    input         clk,
    output [31:0] imem_addr,
    input [31:0]  imem_data,
-   output        dmem_write,
+   output [3:0]  dmem_writeb,
    output        dmem_read,
    output [31:0] dmem_addr,
    input [31:0]  dmem_rdata,
@@ -87,6 +87,7 @@ module cpu
    wire        alu_a0;
    wire        alu_apc;
    wire        alu_b4;
+   wire        dmem_write;
 
    control c (.clk(clk),
               .reset(reset),
@@ -144,16 +145,17 @@ module cpu
 
    wire [31:0] dmem_decode;
    wire        dmem_unaligned;
-   word_decode wd (.funct3(funct3),
-                   .addr(dmem_addr[1:0]),
-                   .data(dmem_rdata),
-                   .decode(dmem_decode),
-                   .unaligned(dmem_unaligned)
-                   );
+   word_encdec wed (.funct3(funct3),
+                    .addr(dmem_addr[1:0]),
+                    .data(dmem_rdata),
+                    .decode(dmem_decode),
+                    .unaligned(dmem_unaligned),
+                    .write(dmem_write),
+                    .writeb(dmem_writeb)
+                    );
 
    assign dmem_addr = alu_y;
    assign dmem_wdata = rs2_rdata;
-
    assign rd_wdata = dmem_reg ? dmem_decode : alu_y;
 
    // simulation

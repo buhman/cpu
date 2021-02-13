@@ -16,7 +16,7 @@ module soc
 
    wire [31:0] imem_data;
    wire [31:0] imem_addr;
-   wire        dmem_write;
+   wire [3:0]  dmem_writeb;
    wire        dmem_read;
    wire [31:0] dmem_addr;
    wire [31:0] dmem_wdata;
@@ -28,7 +28,7 @@ module soc
    cpu c (.clk(cpu_clk),
           .imem_addr(imem_addr),
           .imem_data(imem_data),
-          .dmem_write(dmem_write),
+          .dmem_writeb(dmem_writeb),
           .dmem_read(dmem_read),
           .dmem_addr(dmem_addr),
           .dmem_wdata(dmem_wdata),
@@ -42,7 +42,7 @@ module soc
             );
 
    dmem dm (.clk(cpu_clk),
-            .write(dmem_write),
+            .writeb(dmem_writeb),
             .read(dmem_read),
             .addr(dmem_addr[9:2]),
             .wdata(dmem_wdata),
@@ -54,8 +54,8 @@ module soc
    wire        spi_sck;
    reg         cclk = 0;
 
-   divider #(.P(100),
-   //divider #(.P(0),
+   //divider #(.P(100),
+   divider #(.P(0),
              .N(7)) sc (.clk_in(clk),
                         .clk_out(spi_sck)
                         );
@@ -85,7 +85,7 @@ module soc
                .mosi(dmem_wdata_mosi),
                .cs(dmwd_cs)
                );
-   assign dmem_wdata_cs = dmem_write ? dmwd_cs : 1;
+   assign dmem_wdata_cs = dmem_writeb[0] ? dmwd_cs : 1;
 
    wire        dmrd_cs;
    spi dmrd_s (.data(dmem_rdata),

@@ -13,13 +13,12 @@ FILES += imem.v
 FILES += imm.v
 FILES += control.v
 FILES += dmem.v
-FILES += top.v
 FILES += soc.v
 FILES += spi.v
 FILES += divider.v
-FILES += word_decode.v
+FILES += word_encdec.v
 
-.PHONY: all clean prog
+.PHONY: all clean prog test
 
 all: $(BUILD) $(BUILD)/$(PROJ).bin
 
@@ -27,7 +26,7 @@ $(BUILD):
 	mkdir -p $@
 
 $(BUILD)/$(PROJ).json: $(FILES) *.hex
-	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES)
+	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES) top.v
 
 $(BUILD)/$(PROJ).asc: $(BUILD)/$(PROJ).json
 	nextpnr-ice40 --$(DEVICE) --package $(PACKAGE) --json $(BUILD)/$(PROJ).json --pcf $(PINMAP) --asc $(BUILD)/$(PROJ).asc
@@ -40,3 +39,7 @@ prog:   $(BUILD)/$(PROJ).bin
 
 clean:
 	rm -f build/*
+
+test:
+	iverilog -o soc.out $(FILES) soc_tb.v
+	vvp soc.out

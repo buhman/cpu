@@ -1,14 +1,23 @@
 `include "include.v"
 
-module word_decode(input [2:0]       funct3,
+module word_encdec(input [2:0]       funct3,
                    input [1:0]       addr,
                    input [31:0]      data,
                    output reg [31:0] decode,
-                   output reg        unaligned
+                   output reg        unaligned,
+                   input             write,
+                   output [3:0]      writeb
                    );
 
    wire [1:0] width = funct3[1:0];
    wire       zero_ext = funct3[2];
+
+   wire       enc_word = (width == `ENCDEC_WORD);
+   wire       enc_half = (width == `ENCDEC_HALF);
+   assign writeb[0] = write;
+   assign writeb[1] = write && (enc_half || enc_word);
+   assign writeb[2] = write && enc_word;
+   assign writeb[3] = writeb[2];
 
    always @* begin
       case (width)
