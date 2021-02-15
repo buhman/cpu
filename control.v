@@ -11,6 +11,7 @@ module control
    output reg       alu_imm,
    output reg [2:0] alu_op,
    output reg       alu_alt,
+   output           alu_mul,
    output reg       reg_wen,
    output reg [2:0] pc_imm,
    output           dmem_write,
@@ -50,6 +51,7 @@ module control
    assign alu_a0 = (base == `INS_LUI);
    assign alu_apc = (base == `INS_AUIPC || base == `INS_JAL || base == `INS_JALR);
    assign alu_b4 = (base == `INS_JAL || base == `INS_JALR);
+   assign alu_mul = (funct7 == 7'b1 && base == `INS_OP);
 
    always @* begin
       case (base)

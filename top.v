@@ -59,6 +59,9 @@ module top
 
    wire [7:0] led;
    assign {led1, led2, led3, led4, led5, led6, led7, led8} = led;
+   assign led[0] = cpu_clk;
+   assign led[1] = dmem_wdata_cs;
+   assign led[2] = dmem_rdata_cs;
 
    /*
    wire [15:0] probe;

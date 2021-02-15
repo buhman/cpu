@@ -12,13 +12,10 @@ module soc_tb;
           .pc_mosi(pc_mosi)
           );
 
-
-   wire [31:0] a = 1836311903;
-   wire [31:0] b = 2971215073;
    initial begin
       /*#1 $display("%h", a + b);
        #1 $finish;*/
-      #9000 $finish;
+      #100000000 $finish;
    end
 
 endmodule

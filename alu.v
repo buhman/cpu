@@ -33,3 +33,19 @@ module int_alu
       endcase
    end
 endmodule
+
+module mul_alu
+  (
+   input [2:0] op,
+   input [31:0] a,
+   input [31:0] b,
+   output reg [31:0] y
+   );
+
+   always @* begin
+      case (op)
+        `ALU_MUL: y = a * b;
+        default: y = 32'b0;
+      endcase
+   end
+endmodule

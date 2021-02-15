@@ -1,3 +1,5 @@
+`include "include.v"
+
 module dmem
   (
    input             clk,
@@ -9,6 +11,11 @@ module dmem
    );
 
    reg [31:0] mem [0:255];
+
+`ifdef DMEM_INIT_PATH
+   initial
+      $readmemh(`DMEM_INIT_PATH, mem, 0, `DMEM_INIT_LEN);
+`endif
 
    always @(posedge clk) begin
       if (writeb[0]) mem[addr][7:0] <= wdata[7:0];

@@ -14,6 +14,15 @@
 `define ALU_OR   3'b110
 `define ALU_AND  3'b111
 
+`define ALU_MUL    3'b000
+`define ALU_MULH   3'b001
+`define ALU_MULHSU 3'b010
+`define ALU_MULHU  3'b011
+`define ALU_DIV    3'b100
+`define ALU_DIVU   3'b101
+`define ALU_REM    3'b110
+`define ALU_REMU   3'b111
+
 `define FUNCT3_BEQ 3'b000
 `define FUNCT3_BNE 3'b001
 `define FUNCT3_BLT 3'b100
@@ -43,5 +52,10 @@
 `define PC_IMM_JAL 3'b100
 `define PC_IMM_JALR 3'b101
 
-`define IMEM_INIT_PATH "sw.hex"
-`define IMEM_INIT_LEN 11
+`define IMEM_INIT_PATH "part1.hex"
+`define IMEM_INIT_LEN 16
+
+`define DMEM_INIT_PATH "input.hex"
+`define DMEM_INIT_LEN 199
+
+`define ENABLE_MUL 1

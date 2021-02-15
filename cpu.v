@@ -81,6 +81,7 @@ module cpu
    wire        alu_imm;
    wire [2:0]  alu_op;
    wire        alu_alt;
+   wire        alu_mul;
    wire        reg_wen;
    wire [2:0]  pc_imm;
    wire        dmem_reg;
@@ -98,6 +99,7 @@ module cpu
               .alu_imm(alu_imm),
               .alu_op(alu_op),
               .alu_alt(alu_alt),
+              .alu_mul(alu_mul),
               .reg_wen(reg_wen),
               .pc_imm(pc_imm),
               .dmem_write(dmem_write),
@@ -141,6 +143,15 @@ module cpu
                .zero(alu_zero)
                );
 
+`ifdef ENABLE_MUL
+   wire [31:0] alu_mul_y;
+   mul_alu ma (.op(alu_op),
+               .a(alu_a),
+               .b(alu_b),
+               .y(alu_mul_y)
+               );
+`endif
+
    // dmem
 
    wire [31:0] dmem_decode;
@@ -156,11 +167,17 @@ module cpu
 
    assign dmem_addr = alu_y;
    assign dmem_wdata = rs2_rdata;
-   assign rd_wdata = dmem_reg ? dmem_decode : alu_y;
+   assign rd_wdata = dmem_reg ? dmem_decode :
+`ifdef ENABLE_MUL
+                     alu_mul ? alu_mul_y :
+`endif
+                     alu_y;
 
    // simulation
 
    always @(posedge clk) begin
+      if (alu_mul)
+        $display("%t funct7 %d", $time, alu_mul);
       $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
       //$display("%t %h %h", $time, pc, ins);
    end
