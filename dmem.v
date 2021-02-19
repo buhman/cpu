@@ -24,7 +24,7 @@ module dmem
       if (writeb[3]) mem[addr][31:24] <= wdata[31:24];
 
       if (writeb[0])
-        #1 $display("%t dmem_write addr:%h rdata:%h %d %d", $time, addr, mem[addr], read, writeb[0]);
+        $display("%t dmem_write addr:%h rdata:%h %d %d", $time, addr, mem[addr], read, writeb[0]);
 
       if (read) begin
          $display("%t dmem_read addr:%h rdata:%h %d %d", $time, addr, mem[addr], read, writeb[0]);

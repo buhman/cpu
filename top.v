@@ -25,7 +25,14 @@ module top
    output probeC,
    output probeD,
    output probeE,
-   output probeF
+   output probeF,
+
+   input spi0_sck,
+   input spi0_cs,
+   input spi0_mosi,
+   output spi0_miso,
+
+   output ftdi_tx,
    );
 
    // cpu
@@ -43,6 +50,7 @@ module top
    wire   dmem_rdata_cs;
 
    soc s (.clk(hwclk),
+          // debug
           .cpu_clk(cpu_clk),
           .spi_sck(spi_sck),
           .pc_mosi(pc_mosi),
@@ -52,7 +60,14 @@ module top
           .dmem_wdata_mosi(dmem_wdata_mosi),
           .dmem_wdata_cs(dmem_wdata_cs),
           .dmem_rdata_mosi(dmem_rdata_mosi),
-          .dmem_rdata_cs(dmem_rdata_cs)
+          .dmem_rdata_cs(dmem_rdata_cs),
+          // spi
+          .spi0_sck(spi0_sck),
+          .spi0_cs(spi0_cs),
+          .spi0_mosi(spi0_mosi),
+          .spi0_miso(spi0_miso),
+          // uart
+          .uart0_tx(ftdi_tx)
           );
 
    // io
@@ -81,4 +96,8 @@ module top
    assign probe8 = dmem_rdata_cs;
    assign probe9 = dmem_rdata_mosi;
 
+   assign probeC = spi0_sck;
+   assign probeD = spi0_cs;
+   assign probeE = spi0_mosi;
+   assign probeF = spi0_miso;
 endmodule

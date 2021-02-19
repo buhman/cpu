@@ -1,4 +1,5 @@
 *.hex
 *.svg
 *.out
+*.vcd
 build/

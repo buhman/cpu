@@ -53,7 +53,9 @@
 `define PC_IMM_JALR 3'b101
 
 `define IMEM_INIT_PATH "part1.hex"
-`define IMEM_INIT_LEN 16
+`define IMEM_INIT_LEN 18
+//`define IMEM_INIT_PATH "test.hex"
+//`define IMEM_INIT_LEN 3
 
 `define DMEM_INIT_PATH "input.hex"
 `define DMEM_INIT_LEN 199

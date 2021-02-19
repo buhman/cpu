@@ -1,7 +1,8 @@
 
 
 module soc
-   (input clk,
+   (input  clk,
+    // debug
     output cpu_clk,
     output spi_sck,
     output pc_cs,
@@ -11,7 +12,14 @@ module soc
     output dmem_wdata_cs,
     output dmem_wdata_mosi,
     output dmem_rdata_cs,
-    output dmem_rdata_mosi
+    output dmem_rdata_mosi,
+    // spi
+    input  spi0_sck,
+    input  spi0_cs,
+    input  spi0_mosi,
+    output spi0_miso,
+    // uart
+    output uart0_tx
     );
 
    wire [31:0] imem_data;
@@ -20,7 +28,7 @@ module soc
    wire        dmem_read;
    wire [31:0] dmem_addr;
    wire [31:0] dmem_wdata;
-   wire [31:0] dmem_rdata;
+   reg [31:0]  dmem_rdata;
    wire [31:0] pc_out;
 
    wire        cpu_clk;
@@ -41,13 +49,71 @@ module soc
             .data(imem_data)
             );
 
-   dmem dm (.clk(cpu_clk),
-            .writeb(dmem_writeb),
-            .read(dmem_read),
+   wire        lm_sel = (dmem_addr[31:10] == 22'd0);
+   wire [3:0] lm_writeb = lm_sel ? dmem_writeb : 4'd0;
+   wire       lm_read = lm_sel ? dmem_read : 0;
+   wire [31:0] lm_rdata;
+
+   dmem lm (.clk(cpu_clk),
+            .writeb(lm_writeb),
+            .read(lm_read),
             .addr(dmem_addr[9:2]),
             .wdata(dmem_wdata),
-            .rdata(dmem_rdata)
+            .rdata(lm_rdata)
             );
+
+   // spi slave peripheral
+
+   wire       spi0_sel = (dmem_addr[31:10] == 22'd1);
+   wire [3:0] spi0_writeb = spi0_sel ? dmem_writeb : 4'd0;
+   wire       spi0_read = spi0_sel ? dmem_read : 0;
+   wire [31:0] spi0_rdata;
+
+   spi_slave_mem ssm (.sck(spi0_sck),
+                      .cs(spi0_cs),
+                      .mosi(spi0_mosi),
+                      .miso(spi0_miso),
+                      .clk(cpu_clk),
+                      .writeb(spi0_writeb),
+                      .read(spi0_read),
+                      .addr(dmem_addr[9:2]),
+                      .wdata(dmem_wdata),
+                      .rdata(spi0_rdata)
+                      );
+
+   // uart peripheral
+
+   wire       uart0_sel = (dmem_addr[31:10] == 22'd2);
+   wire [3:0] uart0_writeb = uart0_sel ? dmem_writeb : 4'd0;
+   wire       uart0_read = uart0_sel ? dmem_read : 0;
+   wire [31:0] uart0_rdata;
+
+   wire        uart_clk;
+   divider #(.P(625),
+             .N(10)) uart_d (.clk_in(clk),
+                             .clk_out(uart_clk)
+                             );
+
+   uart_mem uart0 (.uart_clk(uart_clk),
+                   .tx(uart0_tx),
+                   //
+                   .cpu_clk(cpu_clk),
+                   .writeb(uart0_writeb),
+                   .read(uart0_read),
+                   .addr(dmem_addr[9:2]),
+                   .wdata(dmem_wdata),
+                   .rdata(uart0_rdata)
+                   );
+
+   // rdata mux
+
+   always @*
+     case (dmem_addr[31:10])
+       22'd0: dmem_rdata = lm_rdata;
+       22'd1: dmem_rdata = spi0_rdata;
+       22'd2: dmem_rdata = uart0_rdata;
+       default: dmem_rdata = 32'hffffffff;
+     endcase
 
    // debug interface
 
@@ -87,6 +153,7 @@ module soc
                );
    assign dmem_wdata_cs = dmem_writeb[0] ? dmwd_cs : 1;
 
+   /*
    wire        dmrd_cs;
    spi dmrd_s (.data(dmem_rdata),
                .sck(spi_sck),
@@ -94,5 +161,14 @@ module soc
                .cs(dmrd_cs)
                );
    assign dmem_rdata_cs = dmem_read ? dmrd_cs : 1;
+    */
+
+   wire        dmrd_cs;
+   spi dmrd_s (.data(dmem_addr),
+               .sck(spi_sck),
+               .mosi(dmem_rdata_mosi),
+               .cs(dmrd_cs)
+               );
+   assign dmem_rdata_cs = dmem_writeb[0] ? dmrd_cs : 1;
 
 endmodule

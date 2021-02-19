@@ -17,6 +17,8 @@ FILES += soc.v
 FILES += spi.v
 FILES += divider.v
 FILES += word_encdec.v
+FILES += periph/spi_slave.v
+FILES += periph/uart.v
 
 .PHONY: all clean prog test
 
@@ -25,7 +27,7 @@ all: $(BUILD) $(BUILD)/$(PROJ).bin
 $(BUILD):
 	mkdir -p $@
 
-$(BUILD)/$(PROJ).json: $(FILES) *.hex
+$(BUILD)/$(PROJ).json: $(FILES) *.hex top.v
 	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES) top.v
 
 $(BUILD)/$(PROJ).asc: $(BUILD)/$(PROJ).json

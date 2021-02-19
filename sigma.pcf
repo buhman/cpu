@@ -17,15 +17,21 @@ set_io probeD K1
 set_io probeE J2
 set_io probeF J1
 
-set_io --warn-no-port led1 B5
-set_io --warn-no-port led2 B4
-set_io --warn-no-port led3 A2
-set_io --warn-no-port led4 A1
-set_io --warn-no-port led5 C5
-set_io --warn-no-port led6 C4
-set_io --warn-no-port led7 B3
-set_io --warn-no-port led8 C3
-set_io --warn-no-port hwclk J3
+set_io led1 B5
+set_io led2 B4
+set_io led3 A2
+set_io led4 A1
+set_io led5 C5
+set_io led6 C4
+set_io led7 B3
+set_io led8 C3
 
-set_io --warn-no-port ftdi_tx B12
-set_io --warn-no-port ftdi_rx B10
+set_io hwclk J3
+
+set_io ftdi_tx B12
+set_io ftdi_rx B10
+
+set_io spi0_sck M1
+set_io spi0_cs M2
+set_io spi0_mosi N2
+set_io spi0_miso N3
