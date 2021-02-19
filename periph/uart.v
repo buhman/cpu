@@ -23,7 +23,6 @@ module uart (input       clk,
    always @(posedge clk) begin
       case (state)
         STATE_STOP: begin
-           $display("stop");
            if (wdata_ready)
               state <= STATE_START;
         end
@@ -75,13 +74,11 @@ module uart32 (input        clk,
    always @(posedge clk)
      case (state)
        0: begin
-          $display("wdr %d rs %d us %d", wdata_ready, ready_state, uart_stop);
           if (wdata_ready == ready_state && uart_stop) begin
              tx_buf <= wdata;
              tx_ix <= 0;
              state <= state + 1;
              ready_state <= ~ready_state;
-             $display("%t state1", $time);
           end
        end
        1: begin
@@ -105,7 +102,7 @@ module uart_mem (//
                  input             cpu_clk,
                  input [3:0]       writeb,
                  input             read,
-                 input [7:0]       addr,
+                 input [5:0]       addr,
                  input [31:0]      wdata,
                  output reg [31:0] rdata
                  );
@@ -132,10 +129,7 @@ module uart_mem (//
       if (uart_writeb[1]) uart_wdata[15:8] <= wdata[15:8];
       if (uart_writeb[2]) uart_wdata[23:16] <= wdata[23:16];
       if (uart_writeb[3]) uart_wdata[31:24] <= wdata[31:24];
-      if (uart_writeb[0]) begin
-        wdata_state <= ~wdata_state;
-         $display("%d %d %d", wdata_state, ~wdata_state, u32.ready_state);
-      end
+      if (uart_writeb[0]) wdata_state <= ~wdata_state;
 
       //if (read) rdata <= uart_rdata;
    end

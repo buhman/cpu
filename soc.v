@@ -49,7 +49,7 @@ module soc
             .data(imem_data)
             );
 
-   wire        lm_sel = (dmem_addr[31:10] == 22'd0);
+   wire        lm_sel = (dmem_addr[31:16] == 16'h0000);
    wire [3:0] lm_writeb = lm_sel ? dmem_writeb : 4'd0;
    wire       lm_read = lm_sel ? dmem_read : 0;
    wire [31:0] lm_rdata;
@@ -57,13 +57,15 @@ module soc
    dmem lm (.clk(cpu_clk),
             .writeb(lm_writeb),
             .read(lm_read),
-            .addr(dmem_addr[9:2]),
+            //.addr(dmem_addr[15:2]),
+            .addr(dmem_addr[11:2]),
             .wdata(dmem_wdata),
             .rdata(lm_rdata)
             );
 
    // spi slave peripheral
 
+   /*
    wire       spi0_sel = (dmem_addr[31:10] == 22'd1);
    wire [3:0] spi0_writeb = spi0_sel ? dmem_writeb : 4'd0;
    wire       spi0_read = spi0_sel ? dmem_read : 0;
@@ -80,10 +82,11 @@ module soc
                       .wdata(dmem_wdata),
                       .rdata(spi0_rdata)
                       );
+    */
 
    // uart peripheral
 
-   wire       uart0_sel = (dmem_addr[31:10] == 22'd2);
+   wire       uart0_sel = (dmem_addr[31:8] == 24'hffff07);
    wire [3:0] uart0_writeb = uart0_sel ? dmem_writeb : 4'd0;
    wire       uart0_read = uart0_sel ? dmem_read : 0;
    wire [31:0] uart0_rdata;
@@ -100,7 +103,7 @@ module soc
                    .cpu_clk(cpu_clk),
                    .writeb(uart0_writeb),
                    .read(uart0_read),
-                   .addr(dmem_addr[9:2]),
+                   .addr(dmem_addr[7:2]),
                    .wdata(dmem_wdata),
                    .rdata(uart0_rdata)
                    );
@@ -108,11 +111,15 @@ module soc
    // rdata mux
 
    always @*
-     case (dmem_addr[31:10])
-       22'd0: dmem_rdata = lm_rdata;
-       22'd1: dmem_rdata = spi0_rdata;
-       22'd2: dmem_rdata = uart0_rdata;
-       default: dmem_rdata = 32'hffffffff;
+     case (dmem_addr[31:16])
+       16'h0000: dmem_rdata = lm_rdata;
+       16'hffff: begin
+          case (dmem_addr[15:8])
+             8'h07: dmem_rdata = uart0_rdata;
+             default: dmem_rdata = 32'hfdfdfdfd;
+          endcase
+       end
+       default: dmem_rdata = 32'hfefefefe;
      endcase
 
    // debug interface
@@ -120,8 +127,9 @@ module soc
    wire        spi_sck;
    reg         cclk = 0;
 
-   divider #(.P(100),
-   //divider #(.P(0),
+   //divider #(.P(100),
+   /*
+     divider #(.P(0),
              .N(7)) sc (.clk_in(clk),
                         .clk_out(spi_sck)
                         );
@@ -130,6 +138,8 @@ module soc
      // cclk is roughly 1/33 of spi_sck
      cclk <= (pc_cs && !cclk);
    assign cpu_clk = cclk;
+    */
+   assign cpu_clk = clk;
 
    /// spi
 
