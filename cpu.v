@@ -161,18 +161,30 @@ module cpu
    // dmem
 
    wire [31:0] dmem_decode;
+   wire [31:0] dmem_encode;
    wire        dmem_unaligned;
    word_encdec wed (.funct3(funct3),
                     .addr(dmem_addr[1:0]),
-                    .data(dmem_rdata),
+                    .rdata(dmem_rdata),
+                    .wdata(rs2_rdata),
                     .decode(dmem_decode),
+                    .encode(dmem_encode),
                     .unaligned(dmem_unaligned),
                     .write(dmem_write),
                     .writeb(dmem_writeb)
                     );
 
+`ifdef IVERILOG
+   always @(posedge clk) begin
+      if (dmem_unaligned && (dmem_reg || dmem_write)) begin
+        $display("unaligned %t", $time);
+        $stop;
+      end
+   end
+`endif
+
    assign dmem_addr = alu_y;
-   assign dmem_wdata = rs2_rdata;
+   assign dmem_wdata = dmem_encode;
    assign rd_wdata = dmem_reg ? dmem_decode :
 `ifdef ENABLE_MUL
                      alu_mul ? alu_mul_y :

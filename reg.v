@@ -17,6 +17,13 @@ module int_regs
       end
    end
 
+   /*
+   always @(negedge clk) begin
+    rs1_rdata <= rs1_addr ? regs[rs1_addr - 1] : 0;
+    rs2_rdata <= rs2_addr ? regs[rs2_addr - 1] : 0;
+   end
+    */
+
    assign rs1_rdata = rs1_addr ? regs[rs1_addr - 1] : 0;
    assign rs2_rdata = rs2_addr ? regs[rs2_addr - 1] : 0;
 endmodule
