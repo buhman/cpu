@@ -52,6 +52,12 @@ module cpu
                 ? 32'h00000013 // addi x0,x0,0
                 : imem_data;
 
+`ifdef IVERILOG
+   always @(posedge clk)
+     if (ins == 32'h0000006f)
+       $stop;
+`endif
+
    wire [6:0]  op_code = ins[6:0];
    wire [31:7] ins_i = ins[31:7];
    wire [2:0]  funct3 = ins[14:12];
@@ -176,8 +182,6 @@ module cpu
    // simulation
 
    always @(posedge clk) begin
-      if (alu_mul)
-        $display("%t funct7 %d", $time, alu_mul);
       $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
       //$display("%t %h %h", $time, pc, ins);
    end

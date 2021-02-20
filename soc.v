@@ -58,7 +58,7 @@ module soc
             .writeb(lm_writeb),
             .read(lm_read),
             //.addr(dmem_addr[15:2]),
-            .addr(dmem_addr[11:2]),
+            .addr(dmem_addr[12:2]),
             .wdata(dmem_wdata),
             .rdata(lm_rdata)
             );
@@ -127,9 +127,7 @@ module soc
    wire        spi_sck;
    reg         cclk = 0;
 
-   //divider #(.P(100),
-   /*
-     divider #(.P(0),
+   divider #(.P(100),
              .N(7)) sc (.clk_in(clk),
                         .clk_out(spi_sck)
                         );
@@ -137,9 +135,11 @@ module soc
    always @(negedge spi_sck)
      // cclk is roughly 1/33 of spi_sck
      cclk <= (pc_cs && !cclk);
-   assign cpu_clk = cclk;
-    */
+`ifdef IVERILOG
    assign cpu_clk = clk;
+`else
+   assign cpu_clk = cclk;
+`endif
 
    /// spi
 

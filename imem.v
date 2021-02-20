@@ -10,7 +10,7 @@ module imem
    reg [31:0] mem [0:255];
 
    initial
-      $readmemh(`IMEM_INIT_PATH, mem, 0, `IMEM_INIT_LEN);
+      $readmemh(`IMEM_INIT_PATH, mem);
 
    always @(posedge clk) begin
       data <= mem[addr];

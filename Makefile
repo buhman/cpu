@@ -27,7 +27,7 @@ all: $(BUILD) $(BUILD)/$(PROJ).bin
 $(BUILD):
 	mkdir -p $@
 
-$(BUILD)/$(PROJ).json: $(FILES) *.hex top.v
+$(BUILD)/$(PROJ).json: $(FILES) top.v
 	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES) top.v
 
 $(BUILD)/$(PROJ).asc: $(BUILD)/$(PROJ).json
@@ -43,5 +43,6 @@ clean:
 	rm -f build/*
 
 test:
-	iverilog -o soc.out $(FILES) soc_tb.v
+	make -C ../aoc2020
+	iverilog -D IVERILOG -o soc.out $(FILES) soc_tb.v
 	vvp soc.out

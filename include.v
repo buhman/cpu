@@ -52,12 +52,7 @@
 `define PC_IMM_JAL 3'b100
 `define PC_IMM_JALR 3'b101
 
-`define IMEM_INIT_PATH "part1.hex"
-`define IMEM_INIT_LEN 37
-
-//`define DMEM_INIT_PATH "day5-input.hex"
-//`define DMEM_INIT_LEN 3
-`define DMEM_INIT_PATH "day5-input.hex"
-`define DMEM_INIT_LEN 780
+`define IMEM_INIT_PATH "../aoc2020/day5/part1.imem"
+`define DMEM_INIT_PATH "../aoc2020/day5/input.dmem"
 
 //`define ENABLE_MUL 1

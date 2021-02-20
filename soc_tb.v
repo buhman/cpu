@@ -13,7 +13,6 @@ module soc_tb;
           );
 
    initial begin
-      //#10823966 $finish;
    end
 
 endmodule
