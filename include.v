@@ -45,6 +45,13 @@
 `define INS_JAL    5'b11011
 `define INS_SYSTEM 5'b11100
 
+`define FUNCT3_CSRRW 3'b001
+`define FUNCT3_CSRRS 3'b010
+`define FUNCT3_CSRRC 3'b011
+`define FUNCT3_CSRRWI 3'b101
+`define FUNCT3_CSRRSI 3'b110
+`define FUNCT3_CSRRCI 3'b111
+
 `define PC_IMM_0 3'b000
 `define PC_IMM_4 3'b001
 `define PC_IMM_BNZ 3'b010

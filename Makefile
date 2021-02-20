@@ -17,6 +17,7 @@ FILES += soc.v
 FILES += spi.v
 FILES += divider.v
 FILES += word_encdec.v
+FILES += csr.v
 FILES += periph/spi_slave.v
 FILES += periph/uart.v
 

@@ -65,6 +65,7 @@ module cpu
    wire [4:0]  rd_addr = ins[11:7];
    wire [4:0]  rs1_addr = ins[19:15];
    wire [4:0]  rs2_addr = ins[24:20];
+   wire [11:0] csr_addr = ins[31:20];
 
    // imm
 
@@ -95,6 +96,8 @@ module cpu
    wire        alu_apc;
    wire        alu_b4;
    wire        dmem_write;
+   wire        stage0;
+   wire        csr_reg;
 
    control c (.clk(clk),
               .reset(reset),
@@ -113,7 +116,9 @@ module cpu
               .dmem_reg(dmem_reg),
               .alu_a0(alu_a0),
               .alu_apc(alu_apc),
-              .alu_b4(alu_b4)
+              .alu_b4(alu_b4),
+              .stage0(stage0),
+              .csr_reg(csr_reg)
               );
 
    // regs
@@ -131,6 +136,15 @@ module cpu
                 .rs1_rdata(rs1_rdata),
                 .rs2_rdata(rs2_rdata)
                 );
+
+   // csr regs
+
+   wire [31:0] csr_rdata;
+   csr_regs csr (.clk(clk),
+                 .addr(csr_addr),
+                 .stage0(stage0),
+                 .rdata(csr_rdata)
+                 );
 
    // alu
 
@@ -189,6 +203,7 @@ module cpu
 `ifdef ENABLE_MUL
                      alu_mul ? alu_mul_y :
 `endif
+                     csr_reg ? csr_rdata :
                      alu_y;
 
    // simulation

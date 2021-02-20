@@ -19,13 +19,17 @@ module control
    output           dmem_reg,
    output           alu_a0,
    output           alu_apc,
-   output           alu_b4
+   output           alu_b4,
+   output           stage0,
+   output           csr_reg
    );
 
    wire [4:0]  base;
    reg         base_illegal;
 
    reg         stage = 0;
+   wire        stage0 = (stage == 0);
+
    // set the state for the next cycle
    always @(posedge clk) begin
       //$display("%t control %b stage %b", $time, op_code, stage);
@@ -52,6 +56,8 @@ module control
    assign alu_apc = (base == `INS_AUIPC || base == `INS_JAL || base == `INS_JALR);
    assign alu_b4 = (base == `INS_JAL || base == `INS_JALR);
    assign alu_mul = (funct7 == 7'b1 && base == `INS_OP);
+
+   assign csr_reg = (base == `INS_SYSTEM && funct3 == `FUNCT3_CSRRS);
 
    always @* begin
       case (base)
@@ -153,6 +159,14 @@ module control
            base_illegal = 0;
            alu_imm = 1;
            alu_op = `ALU_ADD;
+           alu_alt = 0;
+           reg_wen = 1;
+           pc_imm = `PC_IMM_4;
+        end
+        `INS_SYSTEM: begin
+           base_illegal = !(funct3 == `FUNCT3_CSRRS);
+           alu_imm = 0; // don't care
+           alu_op = `ALU_ADD; // don't care
            alu_alt = 0;
            reg_wen = 1;
            pc_imm = `PC_IMM_4;
