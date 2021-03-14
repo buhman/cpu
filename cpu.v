@@ -53,9 +53,12 @@ module cpu
                 : imem_data;
 
 `ifdef IVERILOG
-   always @(posedge clk)
-     if (ins == 32'h0000006f)
-       $stop;
+   always @(posedge clk) begin
+      if (ins == 32'h0000006f)
+        $stop;
+      if (ins == 32'heeeeeeee)
+        $stop;
+   end
 `endif
 
    wire [6:0]  op_code = ins[6:0];
@@ -209,6 +212,8 @@ module cpu
    // simulation
 
    always @(posedge clk) begin
+      if (dmem_reg)
+        $display("%t dmem_decode addr:%h rdata:%h %h", $time, dmem_addr, dmem_decode, dmem_rdata);
       $display("%t wen:%d rs1:%d/%h rs2:%d/%h rd:%d/%h %h %h", $time, reg_wen, rs1_addr, rs1_rdata, rs2_addr, rs2_rdata, rd_addr, rd_wdata, pc, ins);
       //$display("%t %h %h", $time, pc, ins);
    end

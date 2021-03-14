@@ -39,8 +39,10 @@ module control
           `INS_LOAD: stage <= stage + 1;
           default: stage <= 0;
         endcase
+      /*
       if (stage > 0)
         $display("%t stage %d", $time, stage);
+       */
    end
 
    assign base = op_code[6:2];
