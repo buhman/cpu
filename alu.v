@@ -25,7 +25,9 @@ module int_alu
         `ALU_XOR:
           y = a ^ b;
         `ALU_SRL:
-          y = (alt) ? a >>> b[4:0] : a >> b[4:0];
+          // the Verilog >>> operator only performs an arithmetic shift if the
+          // result type of the entire expression is signed
+          y = (alt) ? $signed(a) >>> b[4:0] : $signed(a) >> b[4:0];
         `ALU_OR:
           y = a | b;
         `ALU_AND:

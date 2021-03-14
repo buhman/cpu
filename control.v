@@ -65,7 +65,7 @@ module control
            base_illegal = 0;
            alu_imm = 1;
            alu_op = funct3;
-           alu_alt = 0;
+           alu_alt = (funct3 == `ALU_SRL && funct7[5]);
            reg_wen = 1;
            pc_imm = `PC_IMM_4;
         end
