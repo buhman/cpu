@@ -19,11 +19,14 @@ module execute
 , input         ex_mb__rd_wen
 , input         mb_wb__rd_wen
 , input  [31:0] wb_id__rd_wdata
-// output
+// arithmetic-logic unit output
 , output reg [31:0] ex_mb__alu_y
 , output reg        ex_mb__alu_zero
 , output reg [31:0] ex_mb__pc
 , output reg [31:0] ex_mb__pc_4
+// forwarding unit output
+, output reg [31:0] ex_mb__rs1_rdata
+, output reg [31:0] ex_mb__rs2_rdata
 );
    /* forwarding unit */
 
@@ -77,6 +80,9 @@ module execute
       ex_mb__alu_zero <= alu_zero;
       ex_mb__pc <= pipe_flush ? 32'hffffffff : id_ex__pc;
       ex_mb__pc_4 <= pipe_flush ? 32'hffffffff : pc_4;
+
+      ex_mb__rs1_rdata <= rs1_rdata;
+      ex_mb__rs2_rdata <= rs2_rdata;
    end
 
 endmodule

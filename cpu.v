@@ -40,8 +40,8 @@ module cpu
    wire [31:0] ex_mb__pc;
    wire [31:0] ex_mb__pc_4;
    reg  [31:0] ex_mb__imm;
-   reg  [31:0] ex_mb__rs1_rdata;
-   reg  [31:0] ex_mb__rs2_rdata;
+   wire [31:0] ex_mb__rs1_rdata;
+   wire [31:0] ex_mb__rs2_rdata;
    wire [31:0] ex_mb__alu_y;
    wire        ex_mb__alu_zero;
    reg   [1:0] ex_mb__dmem_width;
@@ -61,11 +61,15 @@ module cpu
 
    /* mb -> wb */
    reg   [1:0] mb_wb__rd_src;
-   wire [31:0] mb_wb__dmem_rdata;
    reg  [31:0] mb_wb__alu_y;
    reg  [31:0] mb_wb__pc_4;
    reg         mb_wb__rd_wen = 0;
    reg   [4:0] mb_wb__rd_addr;
+
+   wire  [1:0] mb_wb__dmem_width;
+   wire        mb_wb__dmem_zero_ext;
+   wire  [1:0] mb_wb__dmem_word_addr;
+   wire [31:0] mb_wb__dmem_rdata;
 
    /* wb -> id */
    wire        wb_id__rd_wen;
@@ -148,13 +152,14 @@ module cpu
                        , .ex_mb__alu_zero(ex_mb__alu_zero)
                        , .ex_mb__pc(ex_mb__pc)
                        , .ex_mb__pc_4(ex_mb__pc_4)
+                       // forwarding unit output
+                       , .ex_mb__rs1_rdata(ex_mb__rs1_rdata)
+                       , .ex_mb__rs2_rdata(ex_mb__rs2_rdata)
                        );
 
    // if/ex -> ex/mb passthrough
    always @(posedge clk) begin
       ex_mb__imm <= id_ex__imm;
-      ex_mb__rs1_rdata <= id_ex__rs1_rdata;
-      ex_mb__rs2_rdata <= id_ex__rs2_rdata;
 
       ex_mb__dmem_width <= id_ex__dmem_width;
       ex_mb__dmem_zero_ext <= id_ex__dmem_zero_ext;
@@ -187,6 +192,10 @@ module cpu
                              // output
                              , .mb_if__jump_target(mb_if__jump_target)
                              , .mb_if__jump_taken(mb_if__jump_taken)
+
+                             , .mb_wb__dmem_width(mb_wb__dmem_width)
+                             , .mb_wb__dmem_zero_ext(mb_wb__dmem_zero_ext)
+                             , .mb_wb__dmem_word_addr(mb_wb__dmem_word_addr)
                              , .mb_wb__dmem_rdata(mb_wb__dmem_rdata)
                              );
 
@@ -203,12 +212,15 @@ module cpu
 
    /* writeback */
 
-   writeback cpu_writeback ( // no clock
-                             // no pipe_flush
-                             .rd_src(mb_wb__rd_src)
-                           , .dmem_rdata(mb_wb__dmem_rdata)
+   // no clock ; no pipe_flush
+   writeback cpu_writeback ( .rd_src(mb_wb__rd_src)
                            , .alu_y(mb_wb__alu_y)
                            , .pc_4(mb_wb__pc_4)
+
+                           , .dmem_width(mb_wb__dmem_width)
+                           , .dmem_zero_ext(mb_wb__dmem_zero_ext)
+                           , .dmem_word_addr(mb_wb__dmem_word_addr)
+                           , .dmem_rdata(mb_wb__dmem_rdata)
                            // output
                            , .rd_wdata(wb_id__rd_wdata)
                            );

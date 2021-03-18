@@ -1,5 +1,5 @@
 `include "control.vh"
-`include "word_encdec.vh"
+`include "dmem_encdec.vh"
 `include "execute.vh"
 `include "jump.vh"
 `include "writeback.vh"
