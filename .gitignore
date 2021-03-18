@@ -1,0 +1,7 @@
+*.out
+*.elf
+*.imem
+*.o
+build/
+tb/logs/
+tb/obj_dir/

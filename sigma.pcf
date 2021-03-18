@@ -1,0 +1,37 @@
+set_io probe0 B1
+set_io probe1 B2
+set_io probe2 C1
+set_io probe3 C2
+set_io probe4 D1
+set_io probe5 D2
+
+set_io probe6 E2
+set_io probe7 F1
+set_io probe8 F2
+set_io probe9 G1
+set_io probeA G2
+set_io probeB H1
+
+set_io probeC H2
+set_io probeD K1
+set_io probeE J2
+set_io probeF J1
+
+set_io led1 B5
+set_io led2 B4
+set_io led3 A2
+set_io led4 A1
+set_io led5 C5
+set_io led6 C4
+set_io led7 B3
+set_io led8 C3
+
+set_io hwclk J3
+
+set_io ftdi_tx B12
+set_io ftdi_rx B10
+
+set_io spi0_sck M1
+set_io spi0_cs M2
+set_io spi0_mosi N2
+set_io spi0_miso N3
