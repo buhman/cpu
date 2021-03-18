@@ -37,7 +37,7 @@ module fetch
          pc <= next_pc;
       end
 
-      pipe_flush <= 0;
+      pipe_flush <= jump_taken;
    end
 
 endmodule

@@ -133,10 +133,13 @@ module control
                          (op_store)                        ? `IMM_S_TYPE :
                          `IMM_NONE_TYPE;
 
-   wire       immediate = ( op_lui || op_auipc
-                         || op_jal || op_jalr
+   // jal and jalr store pc_4; the immediate is added to the base address in a
+   // separate adder
+   //
+   // branch does not store; the immediate is added in a separate adder
+   wire   alu_immediate = ( op_lui || op_auipc
                          || op_load || op_store
-                         || op_op_imm || op_branch );
+                         || op_op_imm );
 
    wire [31:0] imm_i_type = {{21{ins[31]}}, ins[30:25], ins[24:21], ins[20]};
    wire [31:0] imm_s_type = {{21{ins[31]}}, ins[30:25], ins[11:8], ins[7]};
@@ -183,7 +186,7 @@ module control
                       op_auipc ? `ALU_A_PC   :
                       `ALU_A_RS1;
 
-   assign alu_b_src = immediate ? `ALU_B_IMM : `ALU_B_RS2;
+   assign alu_b_src = alu_immediate ? `ALU_B_IMM : `ALU_B_RS2;
 
    /* dmem control decode */
 

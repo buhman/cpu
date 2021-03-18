@@ -30,10 +30,11 @@ module execute
 );
    /* forwarding unit */
 
-   wire rs1_forward_ex_mb = (ex_mb__rd_wen && id_ex__rs1_addr == ex_mb__rd_addr);
-   wire rs2_forward_ex_mb = (ex_mb__rd_wen && id_ex__rs2_addr == ex_mb__rd_addr);
-   wire rs1_forward_mb_wb = (mb_wb__rd_wen && id_ex__rs1_addr == mb_wb__rd_addr);
-   wire rs2_forward_mb_wb = (mb_wb__rd_wen && id_ex__rs2_addr == mb_wb__rd_addr);
+   wire rd_zero = (ex_mb__rd_addr != 5'd0);
+   wire rs1_forward_ex_mb = (rd_zero && ex_mb__rd_wen && id_ex__rs1_addr == ex_mb__rd_addr);
+   wire rs2_forward_ex_mb = (rd_zero && ex_mb__rd_wen && id_ex__rs2_addr == ex_mb__rd_addr);
+   wire rs1_forward_mb_wb = (rd_zero && mb_wb__rd_wen && id_ex__rs1_addr == mb_wb__rd_addr);
+   wire rs2_forward_mb_wb = (rd_zero && mb_wb__rd_wen && id_ex__rs2_addr == mb_wb__rd_addr);
 
    wire [31:0] rs1_rdata = rs1_forward_ex_mb ? ex_mb__alu_y :
                            rs1_forward_mb_wb ? wb_id__rd_wdata :
