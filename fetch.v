@@ -1,7 +1,9 @@
 module fetch
 ( input             clk
+, input             data_hazard
 , input      [31:0] mb_if__jump_target
 , input             mb_if__jump_taken
+// output
 , output reg [31:0] if_id__pc
 , output     [31:0] if_id__ins
 , output reg        pipe_flush = 1
@@ -15,8 +17,11 @@ module fetch
 
    /* FIXME: misaligned */
 
+   wire        no_hazard = !data_hazard;
+
    imem if_imem ( .clk(clk)
                 , .addr(imem_addr[9:2])
+                , .read(no_hazard)
                 // output
                 , .data(imem_data)
                 );
@@ -27,8 +32,10 @@ module fetch
 
    always @(posedge clk) begin
       // outputs
-      if_id__pc <= pc;
-      pc <= next_pc;
+      if (no_hazard) begin
+         if_id__pc <= pc;
+         pc <= next_pc;
+      end
 
       pipe_flush <= 0;
    end

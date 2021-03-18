@@ -3,6 +3,7 @@
 module imem
 ( input             clk
 , input       [7:0] addr
+, input             read
 , output reg [31:0] data
 );
    reg [31:0] mem [0:255];
@@ -11,6 +12,7 @@ module imem
       $readmemh(`IMEM_INIT_PATH, mem);
 
    always @(posedge clk) begin
-      data <= mem[addr];
+      if (read)
+        data <= mem[addr];
    end
 endmodule

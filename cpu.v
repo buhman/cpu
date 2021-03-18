@@ -7,6 +7,7 @@ module cpu
    assign ins = if_id__ins;
 
    wire pipe_flush;
+   wire data_hazard;
 
    /* if -> id */
    wire [31:0] if_id__pc;
@@ -79,6 +80,7 @@ module cpu
    /* fetch */
 
    fetch cpu_fetch ( .clk(clk)
+                   , .data_hazard(data_hazard)
                    , .mb_if__jump_target(mb_if__jump_target)
                    , .mb_if__jump_taken(mb_if__jump_taken)
                    // output
@@ -92,6 +94,7 @@ module cpu
    decode cpu_decode ( .clk(clk)
                      , .pipe_flush(pipe_flush)
 
+                     , .if_id__pc(if_id__pc)
                      , .if_id__ins(if_id__ins)
 
                      , .wb_id__rd_wen(wb_id__rd_wen)
@@ -99,6 +102,8 @@ module cpu
                      , .wb_id__rd_wdata(wb_id__rd_wdata)
 
                      // output
+                     , .id_ex__pc(id_ex__pc)
+
                      , .id_ex__imm(id_ex__imm)
                      , .id_ex__rs1_rdata(id_ex__rs1_rdata)
                      , .id_ex__rs2_rdata(id_ex__rs2_rdata)
@@ -120,12 +125,9 @@ module cpu
 
                      , .id_ex__rd_wen(id_ex__rd_wen)
                      , .id_ex__rd_src(id_ex__rd_src)
-                     );
 
-   // if/id -> id/ex passthrough
-   always @(posedge clk) begin
-      id_ex__pc <= pipe_flush ? 32'hffffffff : if_id__pc;
-   end
+                     , .data_hazard(data_hazard)
+                     );
 
    /* execute */
 

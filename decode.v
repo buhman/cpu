@@ -4,11 +4,16 @@ module decode
 ( input              clk
 , input              pipe_flush
 
+, input       [31:0] if_id__pc
 , input       [31:0] if_id__ins
 
+// falling-edge register writeback input
 , input              wb_id__rd_wen
 , input        [4:0] wb_id__rd_addr
 , input       [31:0] wb_id__rd_wdata
+
+// output
+, output reg  [31:0] id_ex__pc
 
 , output reg  [31:0] id_ex__imm
 , output wire [31:0] id_ex__rs1_rdata
@@ -31,6 +36,8 @@ module decode
 
 , output reg         id_ex__rd_wen
 , output reg   [1:0] id_ex__rd_src
+
+, output             data_hazard
 );
    wire [4:0] rd_addr;
    wire [4:0] rs1_addr;
@@ -68,6 +75,14 @@ module decode
                       , .rd_src(rd_src)
                       );
 
+   hazard id_hazard ( .rs1_addr(rs1_addr)
+                    , .rs2_addr(rs2_addr)
+                    , .id_ex__rd_addr(id_ex__rd_addr)
+                    , .id_ex__dmem_read(id_ex__dmem_read)
+                    // output
+                    , .data_hazard(data_hazard)
+                    );
+
    wire [31:0] rs1_rdata;
    wire [31:0] rs2_rdata;
 
@@ -85,8 +100,12 @@ module decode
    assign id_ex__rs1_rdata = rs1_rdata;
    assign id_ex__rs2_rdata = rs2_rdata;
 
+   wire bubble = pipe_flush || data_hazard;
+
    always @(posedge clk) begin
       // outputs
+      id_ex__pc <= bubble ? 32'hffffffff : if_id__pc;
+
       id_ex__imm <= imm;
       id_ex__rs1_addr <= rs1_addr;
       id_ex__rs2_addr <= rs2_addr;
@@ -98,13 +117,13 @@ module decode
 
       id_ex__dmem_width <= dmem_width;
       id_ex__dmem_zero_ext <= dmem_zero_ext;
-      id_ex__dmem_read <= pipe_flush ? 1'b0 : dmem_read;
-      id_ex__dmem_write <= pipe_flush ? 1'b0 : dmem_write;
+      id_ex__dmem_read <= bubble ? 1'b0 : dmem_read;
+      id_ex__dmem_write <= bubble ? 1'b0 : dmem_write;
 
       id_ex__jump_base_src <= jump_base_src;
-      id_ex__jump_cond <= pipe_flush ? `COND_NEVER : jump_cond;
+      id_ex__jump_cond <= bubble ? `COND_NEVER : jump_cond;
 
-      id_ex__rd_wen <= pipe_flush ? 1'b0 : rd_wen;
+      id_ex__rd_wen <= bubble ? 1'b0 : rd_wen;
       id_ex__rd_src <= rd_src;
    end
 
