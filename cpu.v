@@ -224,6 +224,8 @@ module cpu
    /* mb/wb */
 
    mem_branch cpu_mem_branch ( .clk(clk)
+                             , .pipe_flush(pipe_flush)
+
                              , .ex_mb__ins_misalign(ex_mb__ins_misalign)
                              , .ex_mb__ins_illegal(ex_mb__ins_illegal)
                              , .ex_mb__ecall(ex_mb__ecall)

@@ -37,7 +37,7 @@ int main(int argc, char** argv, char** env) {
           VL_PRINTF("wb: pc=%03x\n", (top->cpu__DOT__mb_wb___05Fpc_4 - 4));
         }
 
-        if (contextp->time() > 20)
+        if (contextp->time() > 40)
           break;
 
         top->clk = !top->clk;

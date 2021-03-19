@@ -3,6 +3,8 @@
 
 module mem_branch
 ( input         clk
+, input         pipe_flush
+
 , input         ex_mb__ins_misalign
 , input         ex_mb__ins_illegal
 , input 	ex_mb__ecall
@@ -74,15 +76,26 @@ module mem_branch
    wire [31:0] csr_wdata = (ex_mb__csr_src == `CSR_SRC_RS1) ? ex_mb__rs1_rdata :
                            ex_mb__imm;
 
+   wire        trap;
+   wire  [4:0] trap_src;
+   wire [31:0] mtvec_rdata;
+
    csr_reg mb_csr_reg ( .clk(clk)
                       , .addr(ex_mb__csr_addr)
                       , .op(ex_mb__csr_op)
                       , .wdata(csr_wdata)
+                      // trap state
+                      , .pc(ex_mb__pc)
+                      , .trap(trap)
+                      , .trap_src(trap_src)
                       // output
                       , .rdata(mb_wb__csr_rdata)
+                      , .mtvec_rdata(mtvec_rdata)
                       );
 
-   jump mb_jump ( .pc(ex_mb__pc)
+   jump mb_jump ( .pipe_flush(pipe_flush)
+
+                , .pc(ex_mb__pc)
                 , .imm(ex_mb__imm)
                 , .rs1_rdata(ex_mb__rs1_rdata)
                 , .alu_zero(ex_mb__alu_zero)
@@ -95,9 +108,13 @@ module mem_branch
                 , .ebreak(ex_mb__ebreak)
                 , .store_misalign(store_misalign)
                 , .load_misalign(load_misalign)
+
+                , .mtvec_rdata(mtvec_rdata)
                 // outputs
                 , .target(mb_if__jump_target)
                 , .taken(mb_if__jump_taken)
+                , .trap(trap)
+                , .trap_src(trap_src)
                 );
 
    always @(posedge clk) begin

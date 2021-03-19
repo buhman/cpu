@@ -6,7 +6,13 @@ module csr_reg
 , input      [11:0] addr
 , input       [1:0] op
 , input      [31:0] wdata
+// trap state
+, input      [31:0] pc
+, input             trap
+, input       [4:0] trap_src
+// output
 , output reg [31:0] rdata
+, output     [31:0] mtvec_rdata
 );
    `include "csr_reg.vh"
 
@@ -15,6 +21,8 @@ module csr_reg
 
    initial
      regs[0] = 32'h00000000;
+
+   assign mtvec_rdata = 32'h00000000;
 
    (* always_comb *)
    always @*
@@ -27,16 +35,28 @@ module csr_reg
        default       : csr = 0;
      endcase
 
-   always @(posedge clk) begin
-      case (op)
-        `CSR_NOP   : ;
-        `CSR_WRITE : regs[csr] <= wdata;
-        `CSR_SET   : regs[csr] <= regs[csr] | wdata;
-        `CSR_CLEAR : regs[csr] <= regs[csr] & ~wdata;
-      endcase
+   wire [31:0] cause_decode = {trap_src[4], {27{1'b0}}, trap_src[3:0]};
 
-      if (csr != 0)
-        rdata <= regs[csr];
+   genvar     i;
+   generate
+      for (i = 0; i < 32; i = i + 1) begin
+         always @(posedge clk) begin
+            if (!trap && csr != 0)
+              case (op)
+                `CSR_NOP   : ;
+                `CSR_WRITE : regs[csr][i] <= wdata[i];
+                `CSR_SET   : if (wdata[i]) regs[csr][i] <= 1'b1;
+                `CSR_CLEAR : if (wdata[i]) regs[csr][i] <= 1'b0;
+              endcase
+         end
+      end
+   endgenerate
+
+   always @(posedge clk) begin
+      if (trap)
+        regs[mepc] <= pc;
+
+      rdata <= regs[csr];
    end
 
 endmodule

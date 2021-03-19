@@ -2,7 +2,9 @@
 
 (* nolatches *)
 module jump
-( input  [31:0] pc
+( input         pipe_flush
+
+, input  [31:0] pc
 , input  [31:0] imm
 , input  [31:0] rs1_rdata
 , input         alu_zero
@@ -15,9 +17,13 @@ module jump
 , input         ebreak
 , input         store_misalign
 , input         load_misalign
+
+, input  [31:0] mtvec_rdata
 // output
 , output [31:0] target
-, output reg    taken
+, output        taken
+, output 	trap
+, output  [4:0] trap_src
 );
    /*
     the branch instructions use the ALU for sub/lt/ltu on (rs1, rs2)
@@ -25,30 +31,47 @@ module jump
     the branch unit requires a separate adder
     */
 
-   wire [31:0] base = (base_src == `BASE_SRC_RS1) ? rs1_rdata : pc;
-
-   assign target = base + imm;
-
    /* trap control */
-   wire [4:0] trap_src = ins_illegal    ? `TRAP_INS_ILLEGAL    :
-                         ins_misalign   ? `TRAP_INS_MISALIGN   :
-                         ecall          ? `TRAP_M_ECALL        :
-                         ebreak         ? `TRAP_BREAK          :
-                         store_misalign ? `TRAP_STORE_MISALIGN :
-                         load_misalign  ? `TRAP_LOAD_MISALIGN  :
-                         5'b11111;
-   wire trap = ( ins_illegal || ins_misalign
-               || ecall || ebreak
-               || store_misalign || load_misalign
-               );
+   assign trap_src = ins_illegal    ? `TRAP_INS_ILLEGAL    :
+                     ins_misalign   ? `TRAP_INS_MISALIGN   :
+                     ecall          ? `TRAP_M_ECALL        :
+                     ebreak         ? `TRAP_BREAK          :
+                     store_misalign ? `TRAP_STORE_MISALIGN :
+                     load_misalign  ? `TRAP_LOAD_MISALIGN  :
+                     5'b11111;
 
+   wire [31:0] trap_offset = {{26{1'b0}}, trap_src[3:0], 2'b00};
+
+   assign trap = !pipe_flush &&
+                 ( ins_illegal || ins_misalign
+                || ecall || ebreak
+                || store_misalign || load_misalign);
+
+
+   /* branch control */
+
+   reg branch_taken;
    (* always_comb *)
    always @*
      case (cond)
-       `COND_NEVER:    taken = 1'b0;
-       `COND_ALWAYS:   taken = 1'b1;
-       `COND_EQ_ZERO:  taken = alu_zero;
-       `COND_NEQ_ZERO: taken = !alu_zero;
+       `COND_NEVER:    branch_taken = 1'b0;
+       `COND_ALWAYS:   branch_taken = 1'b1;
+       `COND_EQ_ZERO:  branch_taken = alu_zero;
+       `COND_NEQ_ZERO: branch_taken = !alu_zero;
      endcase
+
+   wire base_src_rs1 = (base_src == `BASE_SRC_RS1);
+
+   /* jump control */
+
+   wire [31:0] base = trap ? mtvec_rdata :
+                      base_src_rs1 ? rs1_rdata :
+                      pc;
+
+   wire [31:0] offset = trap ? trap_offset : imm;
+
+   assign target = base + offset;
+
+   assign taken = trap || branch_taken;
 
 endmodule

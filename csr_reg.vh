@@ -1,11 +1,11 @@
 /* verilator lint_off UNUSED */
-localparam mstatus       = 12'h300;
-localparam misa          = 12'h301;
-localparam medeleg       = 12'h302;
-localparam mideleg       = 12'h303;
-localparam mie           = 12'h304;
-localparam mtvec         = 12'h305;
-localparam mcounteren    = 12'h306;
+localparam mstatus_addr  = 12'h300;
+localparam misa_addr     = 12'h301;
+localparam medeleg_addr  = 12'h302;
+localparam mideleg_addr  = 12'h303;
+localparam mie_addr      = 12'h304;
+localparam mtvec_addr    = 12'h305;
+localparam mcounteren_addr = 12'h306;
 
 localparam mscratch_addr = 12'h340;
 localparam mepc_addr     = 12'h341;
