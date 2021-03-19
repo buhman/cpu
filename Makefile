@@ -11,15 +11,18 @@ FILES += control.v
 FILES += cpu.v
 FILES += decode.v
 FILES += dmem.v
+FILES += dmem_decode.v
+FILES += dmem_encode.v
 FILES += execute.v
 FILES += fetch.v
+FILES += hazard.v
 FILES += imem.v
 FILES += int_alu.v
 FILES += int_reg.v
 FILES += jump.v
 FILES += mem_branch.v
-FILES += word_encdec.v
 FILES += writeback.v
+FILES += top.v
 
 .PHONY: all clean prog test
 
@@ -28,8 +31,8 @@ all: $(BUILD) $(BUILD)/$(PROJ).bin
 $(BUILD):
 	mkdir -p $@
 
-$(BUILD)/$(PROJ).json: $(FILES) top.v
-	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES) top.v
+$(BUILD)/$(PROJ).json: $(FILES)
+	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES)
 
 $(BUILD)/$(PROJ).asc: $(BUILD)/$(PROJ).json
 	nextpnr-ice40 --$(DEVICE) --package $(PACKAGE) --json $(BUILD)/$(PROJ).json --pcf $(PINMAP)  --pcf-allow-unconstrained --asc $(BUILD)/$(PROJ).asc

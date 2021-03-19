@@ -1,8 +1,8 @@
 module top
 ( input hwclk
-, output [31:0] ins
+, output [31:0] pc
 );
    cpu top_cpu ( .clk(hwclk)
-               , .ins(ins)
+               , .pc(pc)
                );
 endmodule

@@ -13,7 +13,7 @@ module int_reg
 , output reg [31:0] rs2_rdata
 );
 
-   reg [31:0] regs [1:31];
+   reg [31:0] regs [0:31];
 
    always @(negedge clk) begin
       if (rd_wen && (rd_addr != 0)) begin
@@ -25,15 +25,11 @@ module int_reg
    end
 
    always @(posedge clk) begin
-      /* encourage yosys to infer memory */
-      if (rs1_addr == 0)
-        rs1_rdata <= 32'd0;
-      else
-        rs1_rdata <= regs[rs1_addr];
-
-      if (rs1_addr == 0)
-        rs2_rdata <= 32'd0;
-      else
-        rs2_rdata <= regs[rs2_addr];
+      rs1_rdata <= regs[rs1_addr];
+      rs2_rdata <= regs[rs2_addr];
    end
+
+   initial
+     regs[0] = 32'h00000000;
+
 endmodule

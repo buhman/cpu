@@ -2,9 +2,9 @@
 
 module cpu
 ( input clk
-, output [31:0] ins
+, output [31:0] pc
 );
-   assign ins = if_id__ins;
+   assign pc = ex_mb__pc;
 
    wire pipe_flush;
    wire data_hazard;
