@@ -1,5 +1,6 @@
 `include "include.v"
 
+// 143 LC
 module word_encdec(input [2:0]       funct3,
                    input [1:0]       addr,
                    input [31:0]      rdata,

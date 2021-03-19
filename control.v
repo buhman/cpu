@@ -1,5 +1,6 @@
 `include "include.v"
 
+// 42 LC
 module control
   (
    input            clk,

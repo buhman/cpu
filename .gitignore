@@ -1,3 +1,6 @@
+*.asc
+*.json
+*.config
 *.hex
 *.svg
 *.out

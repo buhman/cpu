@@ -1,5 +1,6 @@
 `include "include.v"
 
+// 654 LC , 21.39ns
 module int_alu
   (
    input [2:0]       op,
@@ -27,7 +28,7 @@ module int_alu
         `ALU_SRL:
           // the Verilog >>> operator only performs an arithmetic shift if the
           // result type of the entire expression is signed
-          y = (alt) ? $signed(a) >>> b[4:0] : $signed(a) >> b[4:0];
+          y = alt ? $signed(a) >>> b[4:0] : $signed(a) >> b[4:0];
         `ALU_OR:
           y = a | b;
         `ALU_AND:
@@ -36,6 +37,7 @@ module int_alu
    end
 endmodule
 
+// 1355 LC
 module mul_alu
   (
    input [2:0] op,

@@ -37,30 +37,7 @@ module top
 
    // cpu
 
-
-   wire   cpu_clk;
-   wire   spi_sck;
-   wire   pc_mosi;
-   wire   pc_cs;
-   wire   imem_data_mosi;
-   wire   imem_data_cs;
-   wire   dmem_wdata_mosi;
-   wire   dmem_wdata_cs;
-   wire   dmem_rdata_mosi;
-   wire   dmem_rdata_cs;
-
    soc s (.clk(hwclk),
-          // debug
-          .cpu_clk(cpu_clk),
-          .spi_sck(spi_sck),
-          .pc_mosi(pc_mosi),
-          .pc_cs(pc_cs),
-          .imem_data_mosi(imem_data_mosi),
-          .imem_data_cs(imem_data_cs),
-          .dmem_wdata_mosi(dmem_wdata_mosi),
-          .dmem_wdata_cs(dmem_wdata_cs),
-          .dmem_rdata_mosi(dmem_rdata_mosi),
-          .dmem_rdata_cs(dmem_rdata_cs),
           // spi
           .spi0_sck(spi0_sck),
           .spi0_cs(spi0_cs),
@@ -84,17 +61,6 @@ module top
            probe7, probe6, probe5, probe4, probe3, probe2, probe1, probe0
            } = probe;
     */
-
-   assign probe0 = cpu_clk;
-   assign probe1 = spi_sck;
-   assign probe2 = pc_cs;
-   assign probe3 = pc_mosi;
-   assign probe4 = imem_data_cs;
-   assign probe5 = imem_data_mosi;
-   assign probe6 = dmem_wdata_cs;
-   assign probe7 = dmem_wdata_mosi;
-   assign probe8 = dmem_rdata_cs;
-   assign probe9 = dmem_rdata_mosi;
 
    assign probeC = spi0_sck;
    assign probeD = spi0_cs;

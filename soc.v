@@ -1,18 +1,5 @@
-
-
 module soc
    (input  clk,
-    // debug
-    output cpu_clk,
-    output spi_sck,
-    output pc_cs,
-    output pc_mosi,
-    output imem_data_cs,
-    output imem_data_mosi,
-    output dmem_wdata_cs,
-    output dmem_wdata_mosi,
-    output dmem_rdata_cs,
-    output dmem_rdata_mosi,
     // spi
     input  spi0_sck,
     input  spi0_cs,
@@ -32,6 +19,8 @@ module soc
    wire [31:0] pc_out;
 
    wire        cpu_clk;
+
+   assign cpu_clk = clk;
 
    cpu c (.clk(cpu_clk),
           .imem_addr(imem_addr),
@@ -121,64 +110,5 @@ module soc
        end
        default: dmem_rdata = 32'hfefefefe;
      endcase
-
-   // debug interface
-
-   wire        spi_sck;
-   reg         cclk = 0;
-
-   divider #(.P(100),
-             .N(7)) sc (.clk_in(clk),
-                        .clk_out(spi_sck)
-                        );
-
-   always @(negedge spi_sck)
-     // cclk is roughly 1/33 of spi_sck
-     cclk <= (pc_cs && !cclk);
-`ifdef IVERILOG
-   assign cpu_clk = clk;
-`else
-   assign cpu_clk = cclk;
-`endif
-
-   /// spi
-
-   spi pc_s (.data(pc_out),
-             .sck(spi_sck),
-             .mosi(pc_mosi),
-             .cs(pc_cs)
-             );
-
-   spi imd_s (.data(imem_data),
-              .sck(spi_sck),
-              .mosi(imem_data_mosi),
-              .cs(imem_data_cs)
-              );
-
-   wire        dmwd_cs;
-   spi dmwd_s (.data(dmem_wdata),
-               .sck(spi_sck),
-               .mosi(dmem_wdata_mosi),
-               .cs(dmwd_cs)
-               );
-   assign dmem_wdata_cs = dmem_writeb[0] ? dmwd_cs : 1;
-
-   /*
-   wire        dmrd_cs;
-   spi dmrd_s (.data(dmem_rdata),
-               .sck(spi_sck),
-               .mosi(dmem_rdata_mosi),
-               .cs(dmrd_cs)
-               );
-   assign dmem_rdata_cs = dmem_read ? dmrd_cs : 1;
-    */
-
-   wire        dmrd_cs;
-   spi dmrd_s (.data(dmem_addr),
-               .sck(spi_sck),
-               .mosi(dmem_rdata_mosi),
-               .cs(dmrd_cs)
-               );
-   assign dmem_rdata_cs = dmem_writeb[0] ? dmrd_cs : 1;
 
 endmodule
