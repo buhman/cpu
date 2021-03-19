@@ -1,4 +1,5 @@
 `include "dmem_encdec.vh"
+`include "control.vh"
 
 module mem_branch
 ( input         clk
@@ -8,12 +9,18 @@ module mem_branch
 , input  [31:0] ex_mb__rs2_rdata
 , input  [31:0] ex_mb__alu_y
 , input         ex_mb__alu_zero
+
 , input   [1:0] ex_mb__dmem_width
 , input         ex_mb__dmem_zero_ext
 , input         ex_mb__dmem_read
 , input         ex_mb__dmem_write
-, input   	ex_mb__jump_base_src
+
+, input         ex_mb__jump_base_src
 , input   [1:0] ex_mb__jump_cond
+
+, input  [11:0] ex_mb__csr_addr
+, input   [1:0] ex_mb__csr_op
+, input         ex_mb__csr_src
 // output
 , output     [31:0] mb_if__jump_target
 , output            mb_if__jump_taken
@@ -22,6 +29,8 @@ module mem_branch
 , output reg        mb_wb__dmem_zero_ext
 , output reg  [1:0] mb_wb__dmem_word_addr
 , output     [31:0] mb_wb__dmem_rdata
+
+, output     [31:0] mb_wb__csr_rdata
 );
    // input wires
 
@@ -55,6 +64,17 @@ module mem_branch
                 // output
                 , .rdata(mb_wb__dmem_rdata)
                 );
+
+   wire [31:0] csr_wdata = (ex_mb__csr_src == `CSR_SRC_RS1) ? ex_mb__rs1_rdata :
+                           ex_mb__imm;
+
+   csr_reg mb_csr_reg ( .clk(clk)
+                      , .addr(ex_mb__csr_addr)
+                      , .op(ex_mb__csr_op)
+                      , .wdata(csr_wdata)
+                      // output
+                      , .rdata(mb_wb__csr_rdata)
+                      );
 
    jump mb_jump ( .pc(ex_mb__pc)
                 , .imm(ex_mb__imm)

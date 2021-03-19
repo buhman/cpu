@@ -1,4 +1,5 @@
 `include "jump.vh"
+`include "control.vh"
 
 module decode
 ( input              clk
@@ -9,8 +10,8 @@ module decode
 
 // falling-edge register writeback input
 , input              wb_id__rd_wen
-, input        [4:0] wb_id__rd_addr
 , input       [31:0] wb_id__rd_wdata
+, input        [4:0] wb_id__rd_addr
 
 // output
 , output reg  [31:0] id_ex__pc
@@ -20,7 +21,6 @@ module decode
 , output wire [31:0] id_ex__rs2_rdata
 , output reg   [4:0] id_ex__rs1_addr
 , output reg   [4:0] id_ex__rs2_addr
-, output reg   [4:0] id_ex__rd_addr
 
 , output reg   [3:0] id_ex__alu_op
 , output reg   [1:0] id_ex__alu_a_src
@@ -36,10 +36,14 @@ module decode
 
 , output reg         id_ex__rd_wen
 , output reg   [1:0] id_ex__rd_src
+, output reg   [4:0] id_ex__rd_addr
+
+, output reg  [11:0] id_ex__csr_addr
+, output reg   [1:0] id_ex__csr_op
+, output reg         id_ex__csr_src
 
 , output             data_hazard
 );
-   wire [4:0] rd_addr;
    wire [4:0] rs1_addr;
    wire [4:0] rs2_addr;
 
@@ -55,30 +59,43 @@ module decode
    wire  [1:0] jump_cond;
    wire        rd_wen;
    wire  [1:0] rd_src;
+   wire  [4:0] rd_addr;
+
+   wire [11:0] csr_addr;
+   wire  [1:0] csr_op;
+   wire        csr_src;
 
    control id_control ( .ins(if_id__ins)
                       // output
                       , .imm(imm)
-                      , .rd_addr(rd_addr)
                       , .rs1_addr(rs1_addr)
                       , .rs2_addr(rs2_addr)
+
                       , .alu_op(alu_op)
                       , .alu_a_src(alu_a_src)
                       , .alu_b_src(alu_b_src)
+
                       , .dmem_width(dmem_width)
                       , .dmem_zero_ext(dmem_zero_ext)
                       , .dmem_read(dmem_read)
                       , .dmem_write(dmem_write)
+
                       , .jump_base_src(jump_base_src)
                       , .jump_cond(jump_cond)
+
                       , .rd_wen(rd_wen)
                       , .rd_src(rd_src)
+                      , .rd_addr(rd_addr)
+
+                      , .csr_addr(csr_addr)
+                      , .csr_op(csr_op)
+                      , .csr_src(csr_src)
                       );
 
    hazard id_hazard ( .rs1_addr(rs1_addr)
                     , .rs2_addr(rs2_addr)
                     , .id_ex__rd_addr(id_ex__rd_addr)
-                    , .id_ex__dmem_read(id_ex__dmem_read)
+                    , .id_ex__rd_src(id_ex__rd_src)
                     // output
                     , .data_hazard(data_hazard)
                     );
@@ -109,7 +126,6 @@ module decode
       id_ex__imm <= imm;
       id_ex__rs1_addr <= rs1_addr;
       id_ex__rs2_addr <= rs2_addr;
-      id_ex__rd_addr <= rd_addr;
 
       id_ex__alu_op <= alu_op;
       id_ex__alu_a_src <= alu_a_src;
@@ -125,6 +141,11 @@ module decode
 
       id_ex__rd_wen <= bubble ? 1'b0 : rd_wen;
       id_ex__rd_src <= rd_src;
+      id_ex__rd_addr <= rd_addr;
+
+      id_ex__csr_addr <= csr_addr;
+      id_ex__csr_op <= bubble ? `CSR_NOP : csr_op;
+      id_ex__csr_src <= csr_src;
    end
 
 endmodule

@@ -9,6 +9,7 @@ PINMAP = sigma.pcf
 FILES =
 FILES += control.v
 FILES += cpu.v
+FILES += csr_reg.v
 FILES += decode.v
 FILES += dmem.v
 FILES += dmem_decode.v
@@ -35,7 +36,12 @@ $(BUILD)/$(PROJ).json: $(FILES)
 	yosys -q -p "synth_ice40 -top top -json $(BUILD)/$(PROJ).json" $(FILES)
 
 $(BUILD)/$(PROJ).asc: $(BUILD)/$(PROJ).json
-	nextpnr-ice40 --$(DEVICE) --package $(PACKAGE) --json $(BUILD)/$(PROJ).json --pcf $(PINMAP)  --pcf-allow-unconstrained --asc $(BUILD)/$(PROJ).asc
+	nextpnr-ice40 \
+		--no-print-critical-path-source \
+		--$(DEVICE) --package $(PACKAGE) \
+		--json $(BUILD)/$(PROJ).json \
+		--pcf $(PINMAP) --pcf-allow-unconstrained \
+		--asc $(BUILD)/$(PROJ).asc
 
 $(BUILD)/$(PROJ).bin: $(BUILD)/$(PROJ).asc
 	icepack $< $@

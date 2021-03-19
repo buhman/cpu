@@ -1,4 +1,5 @@
 `include "jump.vh"
+`include "control.vh"
 
 module cpu
 ( input clk
@@ -19,7 +20,7 @@ module cpu
    wire  [4:0] id_ex__rs1_addr;
    wire  [4:0] id_ex__rs2_addr;
    wire [31:0] id_ex__imm;
-   reg  [31:0] id_ex__pc;
+   wire [31:0] id_ex__pc;
 
    wire  [3:0] id_ex__alu_op;
    wire  [1:0] id_ex__alu_a_src;
@@ -36,6 +37,10 @@ module cpu
    wire        id_ex__rd_wen;
    wire  [1:0] id_ex__rd_src;
    wire  [4:0] id_ex__rd_addr;
+
+   wire [11:0] id_ex__csr_addr;
+   wire  [1:0] id_ex__csr_op;
+   wire        id_ex__csr_src;
 
    /* ex -> mb */
    wire [31:0] ex_mb__pc;
@@ -56,6 +61,10 @@ module cpu
    reg   [1:0] ex_mb__rd_src;
    reg   [4:0] ex_mb__rd_addr;
 
+   reg  [11:0] ex_mb__csr_addr;
+   reg   [1:0] ex_mb__csr_op;
+   reg         ex_mb__csr_src;
+
    /* mb -> if */
    wire [31:0] mb_if__jump_target;
    wire        mb_if__jump_taken;
@@ -72,10 +81,12 @@ module cpu
    wire  [1:0] mb_wb__dmem_word_addr;
    wire [31:0] mb_wb__dmem_rdata;
 
+   wire [31:0] mb_wb__csr_rdata;
+
    /* wb -> id */
    wire        wb_id__rd_wen;
-   wire  [4:0] wb_id__rd_addr;
    wire [31:0] wb_id__rd_wdata;
+   wire  [4:0] wb_id__rd_addr;
 
    /* fetch */
 
@@ -98,8 +109,8 @@ module cpu
                      , .if_id__ins(if_id__ins)
 
                      , .wb_id__rd_wen(wb_id__rd_wen)
-                     , .wb_id__rd_addr(wb_id__rd_addr)
                      , .wb_id__rd_wdata(wb_id__rd_wdata)
+                     , .wb_id__rd_addr(wb_id__rd_addr)
 
                      // output
                      , .id_ex__pc(id_ex__pc)
@@ -109,7 +120,6 @@ module cpu
                      , .id_ex__rs2_rdata(id_ex__rs2_rdata)
                      , .id_ex__rs1_addr(id_ex__rs1_addr)
                      , .id_ex__rs2_addr(id_ex__rs2_addr)
-                     , .id_ex__rd_addr(id_ex__rd_addr)
 
                      , .id_ex__alu_op(id_ex__alu_op)
                      , .id_ex__alu_a_src(id_ex__alu_a_src)
@@ -125,6 +135,11 @@ module cpu
 
                      , .id_ex__rd_wen(id_ex__rd_wen)
                      , .id_ex__rd_src(id_ex__rd_src)
+                     , .id_ex__rd_addr(id_ex__rd_addr)
+
+                     , .id_ex__csr_addr(id_ex__csr_addr)
+                     , .id_ex__csr_op(id_ex__csr_op)
+                     , .id_ex__csr_src(id_ex__csr_src)
 
                      , .data_hazard(data_hazard)
                      );
@@ -174,6 +189,10 @@ module cpu
       ex_mb__rd_src <= id_ex__rd_src;
       ex_mb__rd_wen <= pipe_flush ? 1'b0 : id_ex__rd_wen;
       ex_mb__rd_addr <= id_ex__rd_addr;
+
+      ex_mb__csr_addr <= id_ex__csr_addr;
+      ex_mb__csr_op <= pipe_flush ? `CSR_NOP : id_ex__csr_op;
+      ex_mb__csr_src <= id_ex__csr_src;
    end
 
    /* mb/wb */
@@ -185,12 +204,18 @@ module cpu
                              , .ex_mb__rs2_rdata(ex_mb__rs2_rdata)
                              , .ex_mb__alu_y(ex_mb__alu_y)
                              , .ex_mb__alu_zero(ex_mb__alu_zero)
+
                              , .ex_mb__dmem_width(ex_mb__dmem_width)
                              , .ex_mb__dmem_zero_ext(ex_mb__dmem_zero_ext)
                              , .ex_mb__dmem_read(ex_mb__dmem_read)
                              , .ex_mb__dmem_write(ex_mb__dmem_write)
+
                              , .ex_mb__jump_base_src(ex_mb__jump_base_src)
                              , .ex_mb__jump_cond(ex_mb__jump_cond)
+
+                             , .ex_mb__csr_addr(ex_mb__csr_addr)
+                             , .ex_mb__csr_op(ex_mb__csr_op)
+                             , .ex_mb__csr_src(ex_mb__csr_src)
                              // output
                              , .mb_if__jump_target(mb_if__jump_target)
                              , .mb_if__jump_taken(mb_if__jump_taken)
@@ -199,6 +224,8 @@ module cpu
                              , .mb_wb__dmem_zero_ext(mb_wb__dmem_zero_ext)
                              , .mb_wb__dmem_word_addr(mb_wb__dmem_word_addr)
                              , .mb_wb__dmem_rdata(mb_wb__dmem_rdata)
+
+                             , .mb_wb__csr_rdata(mb_wb__csr_rdata)
                              );
 
    reg [31:0] mb_wb__pc; // debug-only
@@ -223,6 +250,8 @@ module cpu
                            , .dmem_zero_ext(mb_wb__dmem_zero_ext)
                            , .dmem_word_addr(mb_wb__dmem_word_addr)
                            , .dmem_rdata(mb_wb__dmem_rdata)
+
+                           , .csr_rdata(mb_wb__csr_rdata)
                            // output
                            , .rd_wdata(wb_id__rd_wdata)
                            );

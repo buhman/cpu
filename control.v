@@ -10,20 +10,28 @@ module control
 (
   input  [31:0] ins
 , output reg [31:0] imm
-, output  [4:0] rd_addr
 , output  [4:0] rs1_addr
 , output  [4:0] rs2_addr
+
 , output  [3:0] alu_op
 , output  [1:0] alu_a_src
 , output        alu_b_src
+
 , output  [1:0] dmem_width
 , output        dmem_zero_ext
 , output        dmem_read
 , output        dmem_write
+
 , output        jump_base_src
 , output  [1:0] jump_cond
+
 , output        rd_wen
 , output  [1:0] rd_src
+, output  [4:0] rd_addr
+
+, output [11:0] csr_addr
+, output  [1:0] csr_op
+, output        csr_src
 );
    wire  [6:0] op_code = ins[6:0];
    wire  [2:0] funct3  = ins[14:12];
@@ -32,6 +40,7 @@ module control
    assign      rd_addr = ins[11:7];
    assign     rs1_addr = ins[19:15];
    assign     rs2_addr = ins[24:20];
+   assign     csr_addr = funct12;
 
    wire        op_32 = (op_code[1:0] == 2'b11);
    wire [4:0]  op_base = op_code[6:2];
@@ -49,7 +58,7 @@ module control
    wire op_system   = (op_32 && op_base == `OP_SYSTEM);
    wire op_misc_mem = (op_32 && op_base == `OP_MISC_MEM);
 
-   /* instruction decode */
+   /* rv32i instruction decode */
    wire ins_lui    = op_lui;
    wire ins_auipc  = op_auipc;
    wire ins_jal    = op_jal;
@@ -99,6 +108,17 @@ module control
    wire ins_ecall  = (op_system && ezero && funct12 == `FUNCT12_ECALL);
    wire ins_ebreak = (op_system && ezero && funct12 == `FUNCT12_EBREAK);
 
+   /* Zicsr instruction decode */
+   wire ins_csrrw = (op_system && funct3 == `FUNCT3_CSRRW);
+   wire ins_csrrs = (op_system && funct3 == `FUNCT3_CSRRS);
+   wire ins_csrrc = (op_system && funct3 == `FUNCT3_CSRRC);
+   wire ins_csrrwi = (op_system && funct3 == `FUNCT3_CSRRWI);
+   wire ins_csrrsi = (op_system && funct3 == `FUNCT3_CSRRSI);
+   wire ins_csrrci = (op_system && funct3 == `FUNCT3_CSRRCI);
+
+   wire ins__csr = ( ins_csrrw  || ins_csrrs  || ins_csrrc
+                  || ins_csrrwi || ins_csrrsi || ins_csrrci );
+
    wire ins_illegal =
         !( ins_lui || ins_auipc || ins_jal || ins_jalr
 
@@ -123,6 +143,8 @@ module control
         || ins_fence
 
         || ins_ecall || ins_ebreak
+
+        || ins__csr
         );
 
    /* immediate decode */
@@ -131,6 +153,7 @@ module control
                          (op_jalr || op_load || op_op_imm) ? `IMM_I_TYPE :
                          (op_branch)                       ? `IMM_B_TYPE :
                          (op_store)                        ? `IMM_S_TYPE :
+                         (ins_csrrwi || ins_csrrsi || ins_csrrci) ? `IMM_UIMM_RS1 :
                          `IMM_NONE_TYPE;
 
    // jal and jalr store pc_4; the immediate is added to the base address in a
@@ -146,6 +169,7 @@ module control
    wire [31:0] imm_b_type = {{20{ins[31]}}, ins[7], ins[30:25], ins[11:8], 1'b0};
    wire [31:0] imm_u_type = {ins[31], ins[30:20], ins[19:12], 12'b0};
    wire [31:0] imm_j_type = {{12{ins[31]}}, ins[19:12], ins[20], ins[30:25], ins[24:21], 1'b0};
+   wire [31:0] imm_uimm_rs1 = {{27{1'b0}}, rs1_addr};
 
    (* always_comb *)
    always @*
@@ -155,6 +179,7 @@ module control
        `IMM_B_TYPE: imm = imm_b_type;
        `IMM_U_TYPE: imm = imm_u_type;
        `IMM_J_TYPE: imm = imm_j_type;
+       `IMM_UIMM_RS1: imm = imm_uimm_rs1;
        default: imm = 32'hffffffff;
      endcase
 
@@ -207,12 +232,24 @@ module control
                       (ins_bne || ins_blt || ins_bltu) ? `COND_NEQ_ZERO :
                       `COND_NEVER;
 
-   /* reg control decode */
+   /* int reg control decode */
    assign rd_wen = ( op_lui  || op_auipc  || op_jal || op_jalr
-                  || op_load || op_op_imm || op_op );
+                  || op_load || op_op_imm || op_op
+                  || ins__csr );
 
    assign rd_src = op_load             ? `RD_SRC_DMEM_RDATA :
                    (op_jal || op_jalr) ? `RD_SRC_PC_4 :
+                   ins__csr            ? `RD_SRC_CSR :
                    `RD_SRC_ALU_Y;
+
+   /* csr reg control decode */
+
+   assign csr_op = (ins_csrrw || ins_csrrwi) ? `CSR_WRITE :
+                   (ins_csrrs || ins_csrrsi) ? `CSR_SET   :
+                   (ins_csrrc || ins_csrrci) ? `CSR_CLEAR :
+                   `CSR_NOP;
+
+   assign csr_src = (ins_csrrwi || ins_csrrsi || ins_csrrci) ? `CSR_SRC_UIMM_RS1 :
+                    `CSR_SRC_RS1;
 
 endmodule

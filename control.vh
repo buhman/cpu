@@ -1,3 +1,5 @@
+// rv32i instruction decoding
+
 `define OP_LOAD     5'b00000
 `define OP_STORE    5'b01000
 `define OP_BRANCH   5'b11000
@@ -49,4 +51,24 @@
 `define IMM_B_TYPE 3'd2
 `define IMM_U_TYPE 3'd3
 `define IMM_J_TYPE 3'd4
-`define IMM_NONE_TYPE 3'd5
+`define IMM_UIMM_RS1 3'd5
+`define IMM_NONE_TYPE 3'd6
+
+// Zicsr instruction decoding
+
+`define FUNCT3_CSRRW  3'b001
+`define FUNCT3_CSRRS  3'b010
+`define FUNCT3_CSRRC  3'b011
+`define FUNCT3_CSRRWI 3'b101
+`define FUNCT3_CSRRSI 3'b110
+`define FUNCT3_CSRRCI 3'b111
+
+// unit control
+
+`define CSR_NOP   2'b00
+`define CSR_WRITE 2'b01
+`define CSR_SET   2'b10
+`define CSR_CLEAR 2'b11
+
+`define CSR_SRC_RS1      1'b0
+`define CSR_SRC_UIMM_RS1 1'b1

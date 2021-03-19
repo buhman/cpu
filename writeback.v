@@ -10,6 +10,8 @@ module writeback
 , input             dmem_zero_ext
 , input       [1:0] dmem_word_addr
 , input      [31:0] dmem_rdata
+
+, input      [31:0] csr_rdata
 // output
 , output reg [31:0] rd_wdata
 );
@@ -28,7 +30,7 @@ module writeback
        `RD_SRC_ALU_Y      : rd_wdata = alu_y;
        `RD_SRC_DMEM_RDATA : rd_wdata = dmem_rdata_decode;
        `RD_SRC_PC_4       : rd_wdata = pc_4;
-       default            : rd_wdata = 32'hffffffff;
+       `RD_SRC_CSR        : rd_wdata = csr_rdata;
      endcase
 
 endmodule
