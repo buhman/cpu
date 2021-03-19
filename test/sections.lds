@@ -7,6 +7,8 @@ SECTIONS {
     .text :
     {
         . = ALIGN(4);
+        *(.text.vector);
+        . = ALIGN(64);
         *(.text)
     } >IMEM
 }

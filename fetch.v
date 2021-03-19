@@ -9,7 +9,7 @@ module fetch
 , output     [31:0] if_id__ins
 , output reg        pipe_flush = 1
 );
-   reg  [31:0] pc = 0;
+   reg  [31:0] pc = 32'h00000040;
    wire [31:0] pc4 = pc + 4;
    wire [31:0] next_pc;
 
