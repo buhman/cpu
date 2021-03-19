@@ -19,8 +19,8 @@ int main(int argc, char** argv, char** env) {
 
     top->clk = 1;
 
-    //while (!contextp->gotFinish()) {
-    while (1) {
+    while (!contextp->gotFinish()) {
+    //while (1) {
         contextp->timeInc(1);
 
         if (top->clk) {
@@ -37,7 +37,7 @@ int main(int argc, char** argv, char** env) {
           VL_PRINTF("wb: pc=%03x\n", (top->cpu__DOT__mb_wb___05Fpc_4 - 4));
         }
 
-        if (contextp->time() > 25)
+        if (contextp->time() > 20000)
           break;
 
         top->clk = !top->clk;

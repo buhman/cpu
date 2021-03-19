@@ -237,5 +237,14 @@ module cpu
          $dumpvars();
       end
    end
+
+   reg mb_target__mb_pc = 0;
+   reg [31:0] last_mb_wb__pc;
+   always @(posedge clk) begin
+      mb_target__mb_pc <= mb_if__jump_target == ex_mb__pc && mb_if__jump_taken;
+      last_mb_wb__pc <= ex_mb__pc;
+      if (mb_target__mb_pc && last_mb_wb__pc == mb_wb__pc)
+        $finish;
+   end
    `endif
 endmodule
