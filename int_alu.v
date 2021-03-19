@@ -15,11 +15,6 @@ module int_alu
 , output reg [31:0] y
 , output 	    zero
 );
-   /* sub ; 66 LC , 11.69ns */
-   wire [31:0] sub;
-   wire sub_c;
-   assign {sub_c, sub} = $signed(a) - $signed(b);
-
    /* left shift ; 158 LC , 10.74ns */
    wire [31:0] sl_stage [0:4];
    assign sl_stage[0] = b[0] ? {          a[30:0], { 1{1'b0}}} : a;
@@ -50,10 +45,12 @@ module int_alu
     not harmful, so I'll keep this as written.
     */
 
-   wire [31:0] add = a + b;  //  35 LC , 10.12ns
-   wire	       ltu = a < b;  // 100 LC , 11.32ns
+   wire [31:0]  add = a + b;  //  35 LC , 10.12ns
+   wire [31:0]  sub = $signed(a) - $signed(b);
+   wire	         lt = $signed(a) < $signed(b);  // 100 LC , 11.32ns
+   wire	        ltu = a < b;  // 100 LC , 11.32ns
    wire [31:0] xor_ = a ^ b; //  34 LC ,  4.25ns
-   wire [31:0] or_ = a | b;  //  34 LC ,  4.25ns
+   wire [31:0]  or_ = a | b;  //  34 LC ,  4.25ns
    wire [31:0] and_ = a & b; //  34 LC ,  4.25ns
 
    (* always_comb *)
@@ -63,7 +60,7 @@ module int_alu
        `ALU_SUB           : y = sub;
        `ALU_SLL           : y = sl_stage[4];
        `ALU_SRL, `ALU_SRA : y = sr_stage[4];
-       `ALU_LT            : y = {31'd0, sub_c};
+       `ALU_LT            : y = {31'd0, lt};
        `ALU_LTU           : y = {31'd0, ltu};
        `ALU_XOR           : y = xor_;
        `ALU_OR            : y = or_;
