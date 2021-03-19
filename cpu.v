@@ -11,16 +11,24 @@ module cpu
    wire data_hazard;
 
    /* if -> id */
+   wire        if_id__ins_misalign;
+
    wire [31:0] if_id__pc;
    wire [31:0] if_id__ins;
 
    /* id -> ex */
+   wire        id_ex__ins_misalign;
+   wire        id_ex__ins_illegal;
+   wire        id_ex__ecall;
+   wire        id_ex__ebreak;
+
+   wire [31:0] id_ex__pc;
+
    wire [31:0] id_ex__rs1_rdata;
    wire [31:0] id_ex__rs2_rdata;
    wire  [4:0] id_ex__rs1_addr;
    wire  [4:0] id_ex__rs2_addr;
    wire [31:0] id_ex__imm;
-   wire [31:0] id_ex__pc;
 
    wire  [3:0] id_ex__alu_op;
    wire  [1:0] id_ex__alu_a_src;
@@ -43,6 +51,11 @@ module cpu
    wire        id_ex__csr_src;
 
    /* ex -> mb */
+   reg         ex_mb__ins_misalign;
+   reg         ex_mb__ins_illegal;
+   reg         ex_mb__ecall;
+   reg         ex_mb__ebreak;
+
    wire [31:0] ex_mb__pc;
    wire [31:0] ex_mb__pc_4;
    reg  [31:0] ex_mb__imm;
@@ -97,6 +110,7 @@ module cpu
                    // output
                    , .if_id__pc(if_id__pc)
                    , .if_id__ins(if_id__ins)
+                   , .if_id__ins_misalign(if_id__ins_misalign)
                    , .pipe_flush(pipe_flush)
                    );
 
@@ -105,14 +119,21 @@ module cpu
    decode cpu_decode ( .clk(clk)
                      , .pipe_flush(pipe_flush)
 
-                     , .if_id__pc(if_id__pc)
+                     , .if_id__ins_misalign(if_id__ins_misalign)
                      , .if_id__ins(if_id__ins)
+
+                     , .if_id__pc(if_id__pc)
 
                      , .wb_id__rd_wen(wb_id__rd_wen)
                      , .wb_id__rd_wdata(wb_id__rd_wdata)
                      , .wb_id__rd_addr(wb_id__rd_addr)
 
                      // output
+                     , .id_ex__ins_misalign(id_ex__ins_misalign)
+                     , .id_ex__ins_illegal(id_ex__ins_illegal)
+                     , .id_ex__ecall(id_ex__ecall)
+                     , .id_ex__ebreak(id_ex__ebreak)
+
                      , .id_ex__pc(id_ex__pc)
 
                      , .id_ex__imm(id_ex__imm)
@@ -176,6 +197,11 @@ module cpu
 
    // if/ex -> ex/mb passthrough
    always @(posedge clk) begin
+      ex_mb__ins_misalign <= pipe_flush ? 1'b0 : id_ex__ins_misalign;
+      ex_mb__ins_illegal  <= pipe_flush ? 1'b0 : id_ex__ins_illegal;
+      ex_mb__ecall    <= pipe_flush ? 1'b0 : id_ex__ecall;
+      ex_mb__ebreak   <= pipe_flush ? 1'b0 : id_ex__ebreak;
+
       ex_mb__imm <= id_ex__imm;
 
       ex_mb__dmem_width <= id_ex__dmem_width;
@@ -198,6 +224,11 @@ module cpu
    /* mb/wb */
 
    mem_branch cpu_mem_branch ( .clk(clk)
+                             , .ex_mb__ins_misalign(ex_mb__ins_misalign)
+                             , .ex_mb__ins_illegal(ex_mb__ins_illegal)
+                             , .ex_mb__ecall(ex_mb__ecall)
+                             , .ex_mb__ebreak(ex_mb__ebreak)
+
                              , .ex_mb__pc(ex_mb__pc)
                              , .ex_mb__imm(ex_mb__imm)
                              , .ex_mb__rs1_rdata(ex_mb__rs1_rdata)

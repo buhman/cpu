@@ -8,6 +8,14 @@ module jump
 , input         alu_zero
 , input         base_src
 , input   [1:0] cond
+// trap control
+, input         ins_illegal
+, input         ins_misalign
+, input         ecall
+, input         ebreak
+, input         store_misalign
+, input         load_misalign
+// output
 , output [31:0] target
 , output reg    taken
 );
@@ -20,6 +28,19 @@ module jump
    wire [31:0] base = (base_src == `BASE_SRC_RS1) ? rs1_rdata : pc;
 
    assign target = base + imm;
+
+   /* trap control */
+   wire [4:0] trap_src = ins_illegal    ? `TRAP_INS_ILLEGAL    :
+                         ins_misalign   ? `TRAP_INS_MISALIGN   :
+                         ecall          ? `TRAP_M_ECALL        :
+                         ebreak         ? `TRAP_BREAK          :
+                         store_misalign ? `TRAP_STORE_MISALIGN :
+                         load_misalign  ? `TRAP_LOAD_MISALIGN  :
+                         5'b11111;
+   wire trap = ( ins_illegal || ins_misalign
+               || ecall || ebreak
+               || store_misalign || load_misalign
+               );
 
    (* always_comb *)
    always @*

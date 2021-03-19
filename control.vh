@@ -63,6 +63,10 @@
 `define FUNCT3_CSRRSI 3'b110
 `define FUNCT3_CSRRCI 3'b111
 
+// trap-return instruction decoding
+
+`define FUNCT7_MRET 7'b0011000
+
 // unit control
 
 `define CSR_NOP   2'b00

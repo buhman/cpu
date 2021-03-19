@@ -7,8 +7,9 @@
 
 (* nolatches *)
 module control
-(
-  input  [31:0] ins
+( input  [31:0] ins
+// output
+, output        ins_illegal
 , output reg [31:0] imm
 , output  [4:0] rs1_addr
 , output  [4:0] rs2_addr
@@ -32,6 +33,9 @@ module control
 , output [11:0] csr_addr
 , output  [1:0] csr_op
 , output        csr_src
+
+, output        ecall
+, output        ebreak
 );
    wire  [6:0] op_code = ins[6:0];
    wire  [2:0] funct3  = ins[14:12];
@@ -104,9 +108,9 @@ module control
 
    wire ins_fence  = (op_misc_mem && funct3 == `FUNCT3_FENCE);
 
-   wire ezero = (rd_addr == 5'b0 && funct3 == 3'b0 && rs1_addr == 5'b0);
-   wire ins_ecall  = (op_system && ezero && funct12 == `FUNCT12_ECALL);
-   wire ins_ebreak = (op_system && ezero && funct12 == `FUNCT12_EBREAK);
+   wire environment = (op_system && rd_addr == 5'b00000 && funct3 == 3'b000 && rs1_addr == 5'd00000);
+   wire ins_ecall  = (environment && funct12 == `FUNCT12_ECALL);
+   wire ins_ebreak = (environment && funct12 == `FUNCT12_EBREAK);
 
    /* Zicsr instruction decode */
    wire ins_csrrw = (op_system && funct3 == `FUNCT3_CSRRW);
@@ -119,7 +123,11 @@ module control
    wire ins__csr = ( ins_csrrw  || ins_csrrs  || ins_csrrc
                   || ins_csrrwi || ins_csrrsi || ins_csrrci );
 
-   wire ins_illegal =
+   /* trap return decode */
+   wire trap_return = (op_system && rd_addr == 5'b00000 && funct3 == 3'b000 && rs1_addr == 5'd00000 && rs2_addr == 5'd00010);
+   wire ins_mret = (trap_return && funct7 == `FUNCT7_MRET);
+
+   assign ins_illegal =
         !( ins_lui || ins_auipc || ins_jal || ins_jalr
 
         || ins_beq || ins_bne || ins_blt || ins_bge
@@ -145,6 +153,8 @@ module control
         || ins_ecall || ins_ebreak
 
         || ins__csr
+
+        || ins_mret
         );
 
    /* immediate decode */
@@ -212,6 +222,11 @@ module control
                       `ALU_A_RS1;
 
    assign alu_b_src = alu_immediate ? `ALU_B_IMM : `ALU_B_RS2;
+
+   /* environment control decode */
+
+   assign ecall = ins_ecall;
+   assign ebreak = ins_ebreak;
 
    /* dmem control decode */
 

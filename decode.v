@@ -5,8 +5,10 @@ module decode
 ( input              clk
 , input              pipe_flush
 
-, input       [31:0] if_id__pc
+, input              if_id__ins_misalign
 , input       [31:0] if_id__ins
+
+, input       [31:0] if_id__pc
 
 // falling-edge register writeback input
 , input              wb_id__rd_wen
@@ -14,6 +16,11 @@ module decode
 , input        [4:0] wb_id__rd_addr
 
 // output
+, output reg         id_ex__ins_misalign
+, output reg         id_ex__ins_illegal
+, output reg         id_ex__ecall
+, output reg         id_ex__ebreak
+
 , output reg  [31:0] id_ex__pc
 
 , output reg  [31:0] id_ex__imm
@@ -44,8 +51,10 @@ module decode
 
 , output             data_hazard
 );
-   wire [4:0] rs1_addr;
-   wire [4:0] rs2_addr;
+   wire  [4:0] rs1_addr;
+   wire  [4:0] rs2_addr;
+
+   wire        ins_illegal;
 
    wire [31:0] imm;
    wire  [3:0] alu_op;
@@ -65,8 +74,12 @@ module decode
    wire  [1:0] csr_op;
    wire        csr_src;
 
+   wire        ecall;
+   wire        ebreak;
+
    control id_control ( .ins(if_id__ins)
                       // output
+                      , .ins_illegal(ins_illegal)
                       , .imm(imm)
                       , .rs1_addr(rs1_addr)
                       , .rs2_addr(rs2_addr)
@@ -90,6 +103,9 @@ module decode
                       , .csr_addr(csr_addr)
                       , .csr_op(csr_op)
                       , .csr_src(csr_src)
+
+                      , .ecall(ecall)
+                      , .ebreak(ebreak)
                       );
 
    hazard id_hazard ( .rs1_addr(rs1_addr)
@@ -120,7 +136,11 @@ module decode
    wire bubble = pipe_flush || data_hazard;
 
    always @(posedge clk) begin
-      // outputs
+      id_ex__ins_misalign <= bubble ? 1'b0 : if_id__ins_misalign;
+      id_ex__ins_illegal  <= bubble ? 1'b0 : if_id__ins_misalign ? 1'b0 : ins_illegal;
+      id_ex__ecall        <= bubble ? 1'b0 : ecall;
+      id_ex__ebreak       <= bubble ? 1'b0 : ebreak;
+
       id_ex__pc <= bubble ? 32'hffffffff : if_id__pc;
 
       id_ex__imm <= imm;

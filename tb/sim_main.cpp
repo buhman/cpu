@@ -30,14 +30,14 @@ int main(int argc, char** argv, char** env) {
         top->eval();
 
         if (top->clk) {
-          VL_PRINTF("if: pc=%03x next_pc=%03x ins=%08x\n", top->cpu__DOT__cpu_fetch__DOT__pc, top->cpu__DOT__cpu_fetch__DOT__next_pc, top->cpu__DOT__cpu_fetch__DOT__imem_data);
+          VL_PRINTF("if: pc=%03x next_pc=%03x ins=%08x\n", top->cpu__DOT__cpu_fetch__DOT__pc, top->cpu__DOT__cpu_fetch__DOT__next_pc, top->cpu__DOT__cpu_fetch__DOT__pc);
           VL_PRINTF("id: pc=%03x ins=%08x flush=%d\n", top->cpu__DOT__if_id___05Fpc, top->cpu__DOT____Vtogcov__if_id___05Fins, top->cpu__DOT__pipe_flush);
           VL_PRINTF("ex: pc=%03x\n", top->cpu__DOT__id_ex___05Fpc);
           VL_PRINTF("mb: pc=%03x\n", top->cpu__DOT__ex_mb___05Fpc);
           VL_PRINTF("wb: pc=%03x\n", (top->cpu__DOT__mb_wb___05Fpc_4 - 4));
         }
 
-        if (contextp->time() > 20000)
+        if (contextp->time() > 20)
           break;
 
         top->clk = !top->clk;

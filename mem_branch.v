@@ -3,6 +3,11 @@
 
 module mem_branch
 ( input         clk
+, input         ex_mb__ins_misalign
+, input         ex_mb__ins_illegal
+, input 	ex_mb__ecall
+, input 	ex_mb__ebreak
+
 , input  [31:0] ex_mb__pc
 , input  [31:0] ex_mb__imm
 , input  [31:0] ex_mb__rs1_rdata
@@ -40,9 +45,10 @@ module mem_branch
 
    // output wires
 
-   wire dmem_unaligned = (ex_mb__dmem_width == `ENCDEC_HALF && dmem_word_addr == 2'b11)
-                      || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
-   wire unaligned = dmem_unaligned && (ex_mb__dmem_read || ex_mb__dmem_write);
+   wire misalign = (ex_mb__dmem_width == `ENCDEC_HALF && dmem_word_addr == 2'b11)
+                  || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
+   wire load_misalign = misalign && ex_mb__dmem_read;
+   wire store_misalign = misalign && ex_mb__dmem_write;
 
    wire  [3:0] dmem_writeb;
    wire [31:0] dmem_wdata__encode;
@@ -82,6 +88,13 @@ module mem_branch
                 , .alu_zero(ex_mb__alu_zero)
                 , .base_src(ex_mb__jump_base_src)
                 , .cond(ex_mb__jump_cond)
+                // trap control
+                , .ins_illegal(ex_mb__ins_illegal)
+                , .ins_misalign(ex_mb__ins_misalign)
+                , .ecall(ex_mb__ecall)
+                , .ebreak(ex_mb__ebreak)
+                , .store_misalign(store_misalign)
+                , .load_misalign(load_misalign)
                 // outputs
                 , .target(mb_if__jump_target)
                 , .taken(mb_if__jump_taken)
