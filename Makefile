@@ -44,6 +44,5 @@ clean:
 	rm -f build/*
 
 test:
-	make -C ../aoc2020
 	iverilog -D IVERILOG -o soc.out $(FILES) soc_tb.v
 	vvp soc.out
