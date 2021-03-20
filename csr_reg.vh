@@ -17,13 +17,14 @@ localparam mcycle_addr   = 12'hb00;
 localparam minstret_addr = 12'hb02;
 /* verilator lint_on UNUSED */
 
-localparam mscratch = 1;
+localparam mtvec    = 1;
 localparam mepc     = 2;
-localparam mcause   = 3;
-localparam mtval    = 4;
-localparam mip      = 5;
 
-localparam mcycle   = 6;
-localparam minstret = 7;
-
-localparam mtvec    = 8;
+//`define ENABLE_COUNTERS 1
+`ifdef ENABLE_COUNTERS
+localparam mcycle   = 3;
+localparam minstret = 4;
+`define CSR_LAST 4
+`else
+`define CSR_LAST 2
+`endif

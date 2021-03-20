@@ -1,15 +1,5 @@
 `include "control.vh"
 
-`define CSR_BRAM 1
-//`define ENABLE_COUNTERS 1
-/*
-
- CSR_BRAM + !ENABLE_COUNTERS =  149 SB_LUT4 + 2 SB_RAM40_4K
- !CSR_BRAM + ENABLE_COUNTERS = 1180 LC
-
-I like counters, but 1180 LC is *quite* heavy for what this does.
-*/
-
 (* nolatches *)
 module csr_reg
 ( input             clk
@@ -27,40 +17,36 @@ module csr_reg
 , input             data_hazard
 // output
 , output reg [31:0] rdata
-, output     [31:0] mtvec_rdata
+, output reg [31:0] mtvec_rdata
 , output reg [31:0] mepc_rdata
 );
    `include "csr_reg.vh"
 
-   `ifdef CSR_BRAM
-   (* syn_ramstyle="block_ram" *) `endif reg [31:0] regs [0:15];
+   reg [31:0] regs [0:`CSR_LAST];
 
    reg  [3:0] csr;
 
    initial begin
       regs[0]        = 32'h00000000;
+      regs[mtvec]    = 32'h00000000;
+      `ifdef ENABLE_COUNTERS
       regs[mcycle]   = 32'h00000000;
       regs[minstret] = 32'h00000000;
-      regs[mtvec]    = 32'h00000000;
+      `endif
    end
 
    (* always_comb *)
    always @*
      case (addr)
-       mscratch_addr : csr = mscratch;
        mepc_addr     : csr = mepc;
-       mcause_addr   : csr = mcause;
-       mtval_addr    : csr = mtval;
-       mip_addr      : csr = mip;
-
        mtvec_addr    : csr = mtvec;
 
+       `ifdef ENABLE_COUNTERS
        mcycle_addr   : csr = mcycle;
        minstret_addr : csr = minstret;
+       `endif
        default       : csr = 0;
      endcase
-
-   wire [31:0] cause_decode = {trap_src[4], {27{1'b0}}, trap_src[3:0]};
 
    genvar     i;
    generate
@@ -77,14 +63,16 @@ module csr_reg
       end
    endgenerate
 
+   wire [31:0] cause_decode = {trap_src[4], {27{1'b0}}, trap_src[3:0]};
+
    (* always_ff *)
    always @(posedge clk) begin
       if (trap) regs[mepc] <= pc;
 
-      `ifndef CSR_BRAM
+      /* required(?) by the spec, but also very expensive
       if (trap) regs[mcause] <= cause_decode;
       if (misalign) regs[mtval] <= dmem_addr;
-      `endif
+       */
 
       mepc_rdata <= regs[mepc];
       mtvec_rdata <= regs[mtvec];
