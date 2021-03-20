@@ -3,6 +3,7 @@
 
 module cpu
 ( input clk
+, input external_int
 , output [31:0] pc
 );
    assign pc = ex_mb__pc;
@@ -255,6 +256,8 @@ module cpu
                              , .pipe_flush(pipe_flush)
                              , .data_hazard(data_hazard)
 
+                             , .external_int(external_int)
+
                              , .ex_mb__ins_misalign(ex_mb__ins_misalign)
                              , .ex_mb__ins_illegal(ex_mb__ins_illegal)
                              , .ex_mb__ecall(ex_mb__ecall)
@@ -298,9 +301,9 @@ module cpu
    always @(posedge clk) begin
       mb_wb__rd_src <= ex_mb__rd_src;
       mb_wb__alu_y <= ex_mb__alu_y;
-      mb_wb__pc <= pipe_flush ? 32'hffffffff : ex_mb__pc; // debug-only
+      mb_wb__pc <= (mb_if__trap_taken || pipe_flush) ? 32'hffffffff : ex_mb__pc; // debug-only
       mb_wb__pc_4 <= ex_mb__pc_4;
-      mb_wb__rd_wen <= pipe_flush ? 1'b0 : ex_mb__rd_wen;
+      mb_wb__rd_wen <= (mb_if__trap_taken || pipe_flush) ? 1'b0 : ex_mb__rd_wen;
       mb_wb__rd_addr <= ex_mb__rd_addr;
    end
 

@@ -6,6 +6,8 @@ module mem_branch
 , input         pipe_flush
 , input         data_hazard
 
+, input         external_int
+
 , input         ex_mb__ins_misalign
 , input         ex_mb__ins_illegal
 , input         ex_mb__ecall
@@ -104,7 +106,8 @@ module mem_branch
                       , .mepc_rdata(mepc_rdata)
                       );
 
-   jump mb_jump ( .pipe_flush(pipe_flush)
+   jump mb_jump ( .clk(clk)
+                , .pipe_flush(pipe_flush)
 
                 , .pc(ex_mb__pc)
                 , .imm(ex_mb__imm)
@@ -112,7 +115,10 @@ module mem_branch
                 , .alu_zero(ex_mb__alu_zero)
                 , .base_src(ex_mb__jump_base_src)
                 , .cond(ex_mb__jump_cond)
+
                 // trap control
+                , .external_int(external_int)
+
                 , .ins_illegal(ex_mb__ins_illegal)
                 , .ins_misalign(ex_mb__ins_misalign)
                 , .ecall(ex_mb__ecall)

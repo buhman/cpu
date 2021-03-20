@@ -23,6 +23,12 @@ int main(int argc, char** argv, char** env) {
     //while (1) {
         contextp->timeInc(1);
 
+        if (contextp->time() == 18 || contextp->time() == 19) {
+          top->external_int = 1;
+        } else {
+          top->external_int = 0;
+        }
+
         if (top->clk) {
           VL_PRINTF("[%" VL_PRI64 "d]\n", contextp->time());
         }
