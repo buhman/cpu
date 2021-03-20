@@ -13,7 +13,7 @@ module int_alu
 , input      [31:0] a
 , input      [31:0] b
 , output reg [31:0] y
-, output 	    zero
+, output            zero
 );
    /* left shift ; 158 LC , 10.74ns */
    wire [31:0] sl_stage [0:4];
@@ -47,8 +47,8 @@ module int_alu
 
    wire [31:0]  add = a + b;  //  35 LC , 10.12ns
    wire [31:0]  sub = $signed(a) - $signed(b);
-   wire	         lt = $signed(a) < $signed(b);  // 100 LC , 11.32ns
-   wire	        ltu = a < b;  // 100 LC , 11.32ns
+   wire          lt = $signed(a) < $signed(b);  // 100 LC , 11.32ns
+   wire         ltu = a < b;  // 100 LC , 11.32ns
    wire [31:0] xor_ = a ^ b; //  34 LC ,  4.25ns
    wire [31:0]  or_ = a | b;  //  34 LC ,  4.25ns
    wire [31:0] and_ = a & b; //  34 LC ,  4.25ns

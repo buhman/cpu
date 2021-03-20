@@ -7,8 +7,8 @@ module mem_branch
 
 , input         ex_mb__ins_misalign
 , input         ex_mb__ins_illegal
-, input 	ex_mb__ecall
-, input 	ex_mb__ebreak
+, input         ex_mb__ecall
+, input         ex_mb__ebreak
 
 , input  [31:0] ex_mb__pc
 , input  [31:0] ex_mb__imm

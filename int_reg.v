@@ -4,7 +4,7 @@
  */
 module int_reg
 ( input         clk
-, input 	rd_wen
+, input         rd_wen
 , input  [4:0]  rd_addr
 , input  [4:0]  rs1_addr
 , input  [4:0]  rs2_addr
