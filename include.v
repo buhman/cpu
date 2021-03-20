@@ -60,6 +60,6 @@
 `define PC_IMM_JALR 3'b101
 
 `define IMEM_INIT_PATH "../cpu2/test/fib.imem"
-`define DMEM_INIT_PATH "../aoc2020/day5/input.dmem"
+`define DMEM_INIT_PATH "../cpu2/test/fib.imem"
 
 //`define ENABLE_MUL 1
