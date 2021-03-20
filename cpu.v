@@ -89,6 +89,7 @@ module cpu
    wire        mb_if__branch_taken;
    wire        mb_if__trap_taken;
    wire        mb_if__predict_taken = ex_mb__predict_taken;
+   wire [31:0] mb_if__pc_4 = ex_mb__pc_4;
 
    /* mb -> wb */
    reg   [1:0] mb_wb__rd_src;
@@ -117,6 +118,7 @@ module cpu
                    , .mb_if__branch_taken(mb_if__branch_taken)
                    , .mb_if__trap_taken(mb_if__trap_taken)
                    , .mb_if__predict_taken(mb_if__predict_taken)
+                   , .mb_if__pc_4(mb_if__pc_4)
                    // output
                    , .pipe_flush(pipe_flush)
                    , .if_id__ins_misalign(if_id__ins_misalign)
