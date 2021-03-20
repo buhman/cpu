@@ -7,6 +7,7 @@ PINMAP = sigma.pcf
 
 # Files
 FILES =
+FILES += branch_predict.v
 FILES += control.v
 FILES += cpu.v
 FILES += csr_reg.v

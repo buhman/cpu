@@ -20,9 +20,9 @@ module jump
 
 , input  [31:0] mtvec_rdata
 // output
-, output [31:0] target
-, output        taken
-, output 	trap
+, output [31:0] jump_target
+, output reg    branch_taken
+, output        trap_taken
 , output  [4:0] trap_src
 );
    /*
@@ -42,15 +42,14 @@ module jump
 
    wire [31:0] trap_offset = {{26{1'b0}}, trap_src[3:0], 2'b00};
 
-   assign trap = !pipe_flush &&
-                 ( ins_illegal || ins_misalign
-                || ecall || ebreak
-                || store_misalign || load_misalign);
+   assign trap_taken = !pipe_flush &&
+                     ( ins_illegal || ins_misalign
+                    || ecall || ebreak
+                    || store_misalign || load_misalign);
 
 
    /* branch control */
 
-   reg branch_taken;
    (* always_comb *)
    always @*
      case (cond)
@@ -64,14 +63,12 @@ module jump
 
    /* jump control */
 
-   wire [31:0] base = trap ? mtvec_rdata :
+   wire [31:0] base = trap_taken ? mtvec_rdata :
                       base_src_rs1 ? rs1_rdata :
                       pc;
 
-   wire [31:0] offset = trap ? trap_offset : imm;
+   wire [31:0] offset = trap_taken ? trap_offset : imm;
 
-   assign target = base + offset;
-
-   assign taken = trap || branch_taken;
+   assign jump_target = base + offset;
 
 endmodule

@@ -30,7 +30,8 @@ module mem_branch
 , input         ex_mb__csr_src
 // output
 , output     [31:0] mb_if__jump_target
-, output            mb_if__jump_taken
+, output            mb_if__branch_taken
+, output            mb_if__trap_taken
 
 , output reg  [1:0] mb_wb__dmem_width
 , output reg        mb_wb__dmem_zero_ext
@@ -76,7 +77,6 @@ module mem_branch
    wire [31:0] csr_wdata = (ex_mb__csr_src == `CSR_SRC_RS1) ? ex_mb__rs1_rdata :
                            ex_mb__imm;
 
-   wire        trap;
    wire  [4:0] trap_src;
    wire [31:0] mtvec_rdata;
 
@@ -86,7 +86,7 @@ module mem_branch
                       , .wdata(csr_wdata)
                       // trap state
                       , .pc(ex_mb__pc)
-                      , .trap(trap)
+                      , .trap(mb_if__trap_taken)
                       , .trap_src(trap_src)
                       // output
                       , .rdata(mb_wb__csr_rdata)
@@ -111,9 +111,9 @@ module mem_branch
 
                 , .mtvec_rdata(mtvec_rdata)
                 // outputs
-                , .target(mb_if__jump_target)
-                , .taken(mb_if__jump_taken)
-                , .trap(trap)
+                , .jump_target(mb_if__jump_target)
+                , .branch_taken(mb_if__branch_taken)
+                , .trap_taken(mb_if__trap_taken)
                 , .trap_src(trap_src)
                 );
 

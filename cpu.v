@@ -16,6 +16,8 @@ module cpu
    wire [31:0] if_id__pc;
    wire [31:0] if_id__ins;
 
+   wire        if_id__predict_taken;
+
    /* id -> ex */
    wire        id_ex__ins_misalign;
    wire        id_ex__ins_illegal;
@@ -50,6 +52,8 @@ module cpu
    wire  [1:0] id_ex__csr_op;
    wire        id_ex__csr_src;
 
+   reg         id_ex__predict_taken;
+
    /* ex -> mb */
    reg         ex_mb__ins_misalign;
    reg         ex_mb__ins_illegal;
@@ -78,9 +82,13 @@ module cpu
    reg   [1:0] ex_mb__csr_op;
    reg         ex_mb__csr_src;
 
+   reg         ex_mb__predict_taken;
+
    /* mb -> if */
    wire [31:0] mb_if__jump_target;
-   wire        mb_if__jump_taken;
+   wire        mb_if__branch_taken;
+   wire        mb_if__trap_taken;
+   wire        mb_if__predict_taken = ex_mb__predict_taken;
 
    /* mb -> wb */
    reg   [1:0] mb_wb__rd_src;
@@ -106,12 +114,15 @@ module cpu
    fetch cpu_fetch ( .clk(clk)
                    , .data_hazard(data_hazard)
                    , .mb_if__jump_target(mb_if__jump_target)
-                   , .mb_if__jump_taken(mb_if__jump_taken)
+                   , .mb_if__branch_taken(mb_if__branch_taken)
+                   , .mb_if__trap_taken(mb_if__trap_taken)
+                   , .mb_if__predict_taken(mb_if__predict_taken)
                    // output
+                   , .pipe_flush(pipe_flush)
+                   , .if_id__ins_misalign(if_id__ins_misalign)
                    , .if_id__pc(if_id__pc)
                    , .if_id__ins(if_id__ins)
-                   , .if_id__ins_misalign(if_id__ins_misalign)
-                   , .pipe_flush(pipe_flush)
+                   , .if_id__predict_taken(if_id__predict_taken)
                    );
 
    /* decode */
@@ -164,6 +175,11 @@ module cpu
 
                      , .data_hazard(data_hazard)
                      );
+
+   /* if/id -> id/ex pass-through */
+   always @(posedge clk) begin
+      id_ex__predict_taken <= pipe_flush ? 1'b0 : if_id__predict_taken;
+   end
 
    /* execute */
 
@@ -219,6 +235,8 @@ module cpu
       ex_mb__csr_addr <= id_ex__csr_addr;
       ex_mb__csr_op <= pipe_flush ? `CSR_NOP : id_ex__csr_op;
       ex_mb__csr_src <= id_ex__csr_src;
+
+      ex_mb__predict_taken <= pipe_flush ? 1'b0 : id_ex__predict_taken;
    end
 
    /* mb/wb */
@@ -251,7 +269,8 @@ module cpu
                              , .ex_mb__csr_src(ex_mb__csr_src)
                              // output
                              , .mb_if__jump_target(mb_if__jump_target)
-                             , .mb_if__jump_taken(mb_if__jump_taken)
+                             , .mb_if__branch_taken(mb_if__branch_taken)
+                             , .mb_if__trap_taken(mb_if__trap_taken)
 
                              , .mb_wb__dmem_width(mb_wb__dmem_width)
                              , .mb_wb__dmem_zero_ext(mb_wb__dmem_zero_ext)
@@ -303,7 +322,7 @@ module cpu
    reg mb_target__mb_pc = 0;
    reg [31:0] last_mb_wb__pc;
    always @(posedge clk) begin
-      mb_target__mb_pc <= mb_if__jump_target == ex_mb__pc && mb_if__jump_taken;
+      mb_target__mb_pc <= mb_if__jump_target == ex_mb__pc && mb_if__branch_taken;
       last_mb_wb__pc <= ex_mb__pc;
       if (mb_target__mb_pc && last_mb_wb__pc == mb_wb__pc)
         $finish;
