@@ -56,7 +56,6 @@ module mem_branch
                   || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
    wire load_misalign = misalign && ex_mb__dmem_read;
    wire store_misalign = misalign && ex_mb__dmem_write;
-   wire load_store_misalign = (load_misalign || store_misalign);
 
    wire  [3:0] dmem_writeb;
    wire [31:0] dmem_wdata__encode;
@@ -94,7 +93,6 @@ module mem_branch
                       , .pc(ex_mb__pc)
                       , .trap(mb_if__trap_taken)
                       , .trap_src(trap_src)
-                      , .misalign(load_store_misalign)
                       , .dmem_addr(dmem_addr)
                       // counters
                       , .pipe_flush(pipe_flush)

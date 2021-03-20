@@ -10,7 +10,6 @@ module csr_reg
 , input      [31:0] pc
 , input             trap
 , input       [4:0] trap_src
-, input             misalign
 , input      [31:0] dmem_addr
 // counters
 , input             pipe_flush
@@ -23,8 +22,7 @@ module csr_reg
    `include "csr_reg.vh"
 
    reg [31:0] regs [0:`CSR_LAST];
-
-   reg  [3:0] csr;
+   reg  [2:0] csr;
 
    initial begin
       regs[0]        = 32'h00000000;
@@ -41,6 +39,8 @@ module csr_reg
        mepc_addr     : csr = mepc;
        mtvec_addr    : csr = mtvec;
 
+       mcause_addr   : csr = mcause;
+       mtval_addr    : csr = mtval;
        `ifdef ENABLE_COUNTERS
        mcycle_addr   : csr = mcycle;
        minstret_addr : csr = minstret;
@@ -52,7 +52,7 @@ module csr_reg
    generate
       for (i = 0; i < 32; i = i + 1) begin
          always @(posedge clk) begin
-            if (!trap && csr != 0)
+            if (!trap_write && csr != 0)
               case (op)
                 `CSR_NOP   : ;
                 `CSR_WRITE : regs[csr][i] <= wdata[i];
@@ -63,16 +63,33 @@ module csr_reg
       end
    endgenerate
 
-   wire [31:0] cause_decode = {trap_src[4], {27{1'b0}}, trap_src[3:0]};
+   reg  [4:0] last_trap_src;
+   reg [31:0] last_dmem_addr;
+
+   wire [31:0] cause_decode = {last_trap_src[4], {27{1'b0}}, last_trap_src[3:0]};
+   reg   [1:0] trap_state = 0;
+   wire        trap_write = trap || (trap_state != 0);
 
    (* always_ff *)
    always @(posedge clk) begin
-      if (trap) regs[mepc] <= pc;
-
-      /* required(?) by the spec, but also very expensive
-      if (trap) regs[mcause] <= cause_decode;
-      if (misalign) regs[mtval] <= dmem_addr;
-       */
+      if (trap_write)
+        case (trap_state)
+          2'd0: begin
+             regs[mepc] <= pc;
+             last_trap_src <= trap_src;
+             last_dmem_addr <= dmem_addr;
+             trap_state <= 1;
+          end
+          2'd1: begin
+             regs[mcause] <= cause_decode;
+             trap_state <= 2;
+          end
+          2'd2: begin
+             regs[mtval] <= last_dmem_addr;
+             trap_state <= 0;
+          end
+          default: ;
+        endcase
 
       mepc_rdata <= regs[mepc];
       mtvec_rdata <= regs[mtvec];

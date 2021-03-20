@@ -40,12 +40,13 @@ module fetch
                                     );
 
    wire      branch_taken = !pipe_flush && mb_if__branch_taken;
+   wire        trap_taken = !pipe_flush && mb_if__trap_taken;
    wire        mispredict = !pipe_flush && mb_if__branch_taken != mb_if__predict_taken;
    wire [31:0] mispredict_target = mb_if__branch_taken ? mb_if__jump_target : mb_if__pc_4;
 
    `define BRANCH_PREDICTION 1
 
-   assign next_pc = mb_if__trap_taken ? mb_if__jump_target :
+   assign next_pc = trap_taken ? mb_if__jump_target :
                     `ifdef BRANCH_PREDICTION
                     mispredict ? mispredict_target :
                     align_predict_taken ? predict_target :
@@ -64,9 +65,9 @@ module fetch
       if_id__ins <= ins;
 
       `ifdef BRANCH_PREDICTION
-      pipe_flush <= (mispredict || mb_if__trap_taken);
+      pipe_flush <= (mispredict || trap_taken);
       `else
-      pipe_flush <= (branch_taken || mb_if__trap_taken);
+      pipe_flush <= (branch_taken || trap_taken);
       `endif
 
       if_id__predict_taken <= align_predict_taken;

@@ -20,11 +20,14 @@ localparam minstret_addr = 12'hb02;
 localparam mtvec    = 1;
 localparam mepc     = 2;
 
+localparam mcause   = 3;
+localparam mtval    = 4;
+
 //`define ENABLE_COUNTERS 1
 `ifdef ENABLE_COUNTERS
-localparam mcycle   = 3;
-localparam minstret = 4;
-`define CSR_LAST 4
+localparam mcycle   = 5;
+localparam minstret = 6;
+`define CSR_LAST 6
 `else
-`define CSR_LAST 2
+`define CSR_LAST 4
 `endif
