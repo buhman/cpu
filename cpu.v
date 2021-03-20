@@ -24,6 +24,8 @@ module cpu
    wire        id_ex__ecall;
    wire        id_ex__ebreak;
 
+   wire        id_ex__trap_return;
+
    wire [31:0] id_ex__pc;
 
    wire [31:0] id_ex__rs1_rdata;
@@ -59,6 +61,8 @@ module cpu
    reg         ex_mb__ins_illegal;
    reg         ex_mb__ecall;
    reg         ex_mb__ebreak;
+
+   reg         ex_mb__trap_return;
 
    wire [31:0] ex_mb__pc;
    wire [31:0] ex_mb__pc_4;
@@ -147,6 +151,8 @@ module cpu
                      , .id_ex__ecall(id_ex__ecall)
                      , .id_ex__ebreak(id_ex__ebreak)
 
+                     , .id_ex__trap_return(id_ex__trap_return)
+
                      , .id_ex__pc(id_ex__pc)
 
                      , .id_ex__imm(id_ex__imm)
@@ -220,6 +226,8 @@ module cpu
       ex_mb__ecall    <= pipe_flush ? 1'b0 : id_ex__ecall;
       ex_mb__ebreak   <= pipe_flush ? 1'b0 : id_ex__ebreak;
 
+      ex_mb__trap_return <= pipe_flush ? 1'b0 : id_ex__trap_return;
+
       ex_mb__imm <= id_ex__imm;
 
       ex_mb__dmem_width <= id_ex__dmem_width;
@@ -245,11 +253,14 @@ module cpu
 
    mem_branch cpu_mem_branch ( .clk(clk)
                              , .pipe_flush(pipe_flush)
+                             , .data_hazard(data_hazard)
 
                              , .ex_mb__ins_misalign(ex_mb__ins_misalign)
                              , .ex_mb__ins_illegal(ex_mb__ins_illegal)
                              , .ex_mb__ecall(ex_mb__ecall)
                              , .ex_mb__ebreak(ex_mb__ebreak)
+
+                             , .ex_mb__trap_return(ex_mb__trap_return)
 
                              , .ex_mb__pc(ex_mb__pc)
                              , .ex_mb__imm(ex_mb__imm)

@@ -4,11 +4,14 @@
 module mem_branch
 ( input         clk
 , input         pipe_flush
+, input         data_hazard
 
 , input         ex_mb__ins_misalign
 , input         ex_mb__ins_illegal
 , input         ex_mb__ecall
 , input         ex_mb__ebreak
+
+, input         ex_mb__trap_return
 
 , input  [31:0] ex_mb__pc
 , input  [31:0] ex_mb__imm
@@ -28,6 +31,7 @@ module mem_branch
 , input  [11:0] ex_mb__csr_addr
 , input   [1:0] ex_mb__csr_op
 , input         ex_mb__csr_src
+
 // output
 , output     [31:0] mb_if__jump_target
 , output            mb_if__branch_taken
@@ -52,6 +56,7 @@ module mem_branch
                   || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
    wire load_misalign = misalign && ex_mb__dmem_read;
    wire store_misalign = misalign && ex_mb__dmem_write;
+   wire load_store_misalign = (load_misalign || store_misalign);
 
    wire  [3:0] dmem_writeb;
    wire [31:0] dmem_wdata__encode;
@@ -79,6 +84,7 @@ module mem_branch
 
    wire  [4:0] trap_src;
    wire [31:0] mtvec_rdata;
+   wire [31:0] mepc_rdata;
 
    csr_reg mb_csr_reg ( .clk(clk)
                       , .addr(ex_mb__csr_addr)
@@ -88,9 +94,16 @@ module mem_branch
                       , .pc(ex_mb__pc)
                       , .trap(mb_if__trap_taken)
                       , .trap_src(trap_src)
+                      , .misalign(load_store_misalign)
+                      , .dmem_addr(dmem_addr)
+                      // counters
+                      , .pipe_flush(pipe_flush)
+                      , .data_hazard(data_hazard)
                       // output
                       , .rdata(mb_wb__csr_rdata)
+
                       , .mtvec_rdata(mtvec_rdata)
+                      , .mepc_rdata(mepc_rdata)
                       );
 
    jump mb_jump ( .pipe_flush(pipe_flush)
@@ -108,8 +121,11 @@ module mem_branch
                 , .ebreak(ex_mb__ebreak)
                 , .store_misalign(store_misalign)
                 , .load_misalign(load_misalign)
-
                 , .mtvec_rdata(mtvec_rdata)
+
+                , .trap_return(ex_mb__trap_return)
+                , .mepc_rdata(mepc_rdata)
+
                 // outputs
                 , .jump_target(mb_if__jump_target)
                 , .branch_taken(mb_if__branch_taken)

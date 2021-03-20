@@ -21,6 +21,8 @@ module decode
 , output reg         id_ex__ecall
 , output reg         id_ex__ebreak
 
+, output reg         id_ex__trap_return
+
 , output reg  [31:0] id_ex__pc
 
 , output reg  [31:0] id_ex__imm
@@ -106,6 +108,8 @@ module decode
 
                       , .ecall(ecall)
                       , .ebreak(ebreak)
+
+                      , .trap_return(trap_return)
                       );
 
    hazard id_hazard ( .rs1_addr(rs1_addr)
@@ -134,12 +138,14 @@ module decode
    assign id_ex__rs2_rdata = rs2_rdata;
 
    wire bubble = pipe_flush || data_hazard;
+   wire trap_return;
 
    always @(posedge clk) begin
       id_ex__ins_misalign <= bubble ? 1'b0 : if_id__ins_misalign;
       id_ex__ins_illegal  <= bubble ? 1'b0 : if_id__ins_misalign ? 1'b0 : ins_illegal;
       id_ex__ecall        <= bubble ? 1'b0 : ecall;
       id_ex__ebreak       <= bubble ? 1'b0 : ebreak;
+      id_ex__trap_return  <= bubble ? 1'b0 : trap_return;
 
       id_ex__pc <= bubble ? 32'hffffffff : if_id__pc;
 

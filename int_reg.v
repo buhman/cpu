@@ -13,7 +13,7 @@ module int_reg
 , output reg [31:0] rs2_rdata
 );
 
-   reg [31:0] regs [0:31];
+   (* syn_ramstyle="block_ram" *) reg [31:0] regs [0:31];
 
    always @(negedge clk) begin
       if (rd_wen && (rd_addr != 0)) begin

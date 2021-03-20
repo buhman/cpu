@@ -36,6 +36,8 @@ module control
 
 , output        ecall
 , output        ebreak
+
+, output        trap_return
 );
    wire  [6:0] op_code = ins[6:0];
    wire  [2:0] funct3  = ins[14:12];
@@ -124,8 +126,8 @@ module control
                   || ins_csrrwi || ins_csrrsi || ins_csrrci );
 
    /* trap return decode */
-   wire trap_return = (op_system && rd_addr == 5'b00000 && funct3 == 3'b000 && rs1_addr == 5'd00000 && rs2_addr == 5'd00010);
-   wire ins_mret = (trap_return && funct7 == `FUNCT7_MRET);
+   wire op_trap_return = (op_system && rd_addr == 5'b00000 && funct3 == 3'b000 && rs1_addr == 5'b00000 && rs2_addr == 5'b00010);
+   wire ins_mret = (op_trap_return && funct7 == `FUNCT7_MRET);
 
    assign ins_illegal =
         !( ins_lui || ins_auipc || ins_jal || ins_jalr
@@ -266,5 +268,9 @@ module control
 
    assign csr_src = (ins_csrrwi || ins_csrrsi || ins_csrrci) ? `CSR_SRC_UIMM_RS1 :
                     `CSR_SRC_RS1;
+
+   /* trap return control decode */
+
+   assign trap_return = ins_mret;
 
 endmodule

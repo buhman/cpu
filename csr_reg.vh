@@ -22,3 +22,8 @@ localparam mepc     = 2;
 localparam mcause   = 3;
 localparam mtval    = 4;
 localparam mip      = 5;
+
+localparam mcycle   = 6;
+localparam minstret = 7;
+
+localparam mtvec    = 8;

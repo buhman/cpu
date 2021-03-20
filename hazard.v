@@ -9,7 +9,7 @@ module hazard
 
    wire mem_csr = (id_ex__rd_src == `RD_SRC_DMEM_RDATA || id_ex__rd_src == `RD_SRC_CSR);
 
-   wire rs_rd = (rs1_addr == id_ex__rd_addr || rs2_addr == id_ex__rd_addr);
+   wire rs_rd = (rs1_addr == id_ex__rd_addr || rs2_addr == id_ex__rd_addr) && id_ex__rd_addr != 5'd0;
 
    assign data_hazard = mem_csr && rs_rd;
 

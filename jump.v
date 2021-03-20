@@ -17,8 +17,10 @@ module jump
 , input         ebreak
 , input         store_misalign
 , input         load_misalign
-
 , input  [31:0] mtvec_rdata
+
+, input         trap_return
+, input  [31:0] mepc_rdata
 // output
 , output [31:0] jump_target
 , output reg    branch_taken
@@ -42,11 +44,12 @@ module jump
 
    wire [31:0] trap_offset = {{26{1'b0}}, trap_src[3:0], 2'b00};
 
-   assign trap_taken = !pipe_flush &&
-                     ( ins_illegal || ins_misalign
-                    || ecall || ebreak
-                    || store_misalign || load_misalign);
+   wire trap = !pipe_flush &&
+                ( ins_illegal || ins_misalign
+               || ecall || ebreak
+               || store_misalign || load_misalign);
 
+   assign trap_taken = trap || trap_return;
 
    /* branch control */
 
@@ -63,11 +66,14 @@ module jump
 
    /* jump control */
 
-   wire [31:0] base = trap_taken ? mtvec_rdata :
+   wire [31:0] base = trap ? mtvec_rdata :
+                      trap_return ? mepc_rdata :
                       base_src_rs1 ? rs1_rdata :
                       pc;
 
-   wire [31:0] offset = trap_taken ? trap_offset : imm;
+   wire [31:0] offset = trap ? trap_offset :
+                        trap_return ? 32'h00000000 :
+                        imm;
 
    assign jump_target = base + offset;
 
