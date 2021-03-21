@@ -12,13 +12,16 @@ module fetch
 , output reg [31:0] if_id__pc
 , output reg [31:0] if_id__ins
 , output reg        if_id__predict_taken
+, output            if_id__data_hazard
+, output            if_id__instret
 );
    reg  [31:0] pc = 32'h00000040;
    wire [31:0] pc4 = pc + 4;
    wire [31:0] next_pc;
 
    wire        ins_misalign = (pc[1:0] != 2'b00);
-   wire        no_hazard = !data_hazard;
+   reg         bubble = 0;
+   wire        no_hazard = bubble || !data_hazard;
 
    wire [31:0] ins;
    imem if_imem ( .clk(!clk)
@@ -55,6 +58,10 @@ module fetch
                     `endif
                     pc4;
 
+   wire        data_hazard_next = data_hazard && !no_hazard;
+   assign if_id__data_hazard = data_hazard_next;
+   assign if_id__instret = !data_hazard_next;
+
    always @(posedge clk) begin
       if_id__ins_misalign <= ins_misalign;
 
@@ -62,6 +69,9 @@ module fetch
          if_id__pc <= pc;
          pc <= next_pc;
       end
+
+      bubble <= data_hazard && !bubble;
+
       if_id__ins <= ins;
 
       `ifdef BRANCH_PREDICTION

@@ -13,8 +13,8 @@
         jal x0,_m_ecall
 
         .section .text
-        addi x0,x0,0
-        jal x0,0x2
+        csrrwi x0,mtvec,31
+        ebreak
 
 _ins_misaligned:
         lui x0,0xdead

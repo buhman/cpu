@@ -2,8 +2,7 @@
 
 (* nolatches *)
 module jump
-( input         clk
-, input         pipe_flush
+( input         pipe_flush
 
 , input  [31:0] pc
 , input  [31:0] imm
@@ -43,24 +42,16 @@ module jump
                      ebreak         ? `TRAP_BREAK          :
                      store_misalign ? `TRAP_STORE_MISALIGN :
                      load_misalign  ? `TRAP_LOAD_MISALIGN  :
-                     last_external_int ? `TRAP_M_EXT_INT   :
+                     external_int   ? `TRAP_M_EXT_INT   :
                      5'b11111;
 
    wire [31:0] trap_offset = {{26{1'b0}}, trap_src[3:0], 2'b00};
-
-   reg         last_external_int = 0;
-   wire        clear_int = last_external_int && !pipe_flush;
-   wire        set_int = !last_external_int && external_int;
-   always @(posedge clk) begin
-      if (clear_int) last_external_int <= 0;
-      if (set_int) last_external_int <= 1;
-   end
 
    wire trap = !pipe_flush &&
                 ( ins_illegal || ins_misalign
                || ecall || ebreak
                || store_misalign || load_misalign
-               || last_external_int);
+               || external_int);
 
    assign trap_taken = trap || trap_return;
 

@@ -1,9 +1,12 @@
 `include "execute.vh"
+`include "control.vh"
 
 (* nolatches *)
 module execute
 ( input         clk
 , input         pipe_flush
+, input         data_hazard // csr performance counters
+
 , input  [31:0] id_ex__rs1_rdata
 , input  [31:0] id_ex__rs2_rdata
 , input  [31:0] id_ex__imm
@@ -19,6 +22,16 @@ module execute
 , input         ex_mb__rd_wen
 , input         mb_wb__rd_wen
 , input  [31:0] wb_id__rd_wdata
+// control and status register unit
+, input  [11:0] id_ex__csr_addr
+, input   [1:0] id_ex__csr_op
+, input         id_ex__csr_src
+
+, input         mb_if__trap_taken
+, input   [4:0] mb_ex__trap_src
+, input  [31:0] mb_ex__dmem_addr
+
+, input         wb_ex__instret
 // arithmetic-logic unit output
 , output reg [31:0] ex_mb__alu_y
 , output reg        ex_mb__alu_zero
@@ -27,6 +40,10 @@ module execute
 // forwarding unit output
 , output reg [31:0] ex_mb__rs1_rdata
 , output reg [31:0] ex_mb__rs2_rdata
+// control and status register unit output
+, output     [31:0] ex_mb__csr_rdata
+, output     [31:0] ex_mb__mtvec_rdata
+, output     [31:0] ex_mb__mepc_rdata
 );
    /* forwarding unit */
 
@@ -85,5 +102,29 @@ module execute
       ex_mb__rs1_rdata <= rs1_rdata;
       ex_mb__rs2_rdata <= rs2_rdata;
    end
+
+   /* control and status register unit */
+
+   wire [31:0] csr_wdata = (id_ex__csr_src == `CSR_SRC_RS1) ? rs1_rdata :
+                            id_ex__imm;
+
+   csr_reg ex_csr_reg ( .clk(clk)
+                      , .addr(id_ex__csr_addr)
+                      , .op(id_ex__csr_op)
+                      , .wdata(csr_wdata)
+                      // trap state
+                      , .pc(id_ex__pc)
+                      , .trap(mb_if__trap_taken)
+                      , .trap_src(mb_ex__trap_src)
+                      , .dmem_addr(mb_ex__dmem_addr)
+                      , .pipe_flush(pipe_flush)
+                      // counters
+                      , .instret(wb_ex__instret)
+                      // output
+                      , .rdata(ex_mb__csr_rdata)
+
+                      , .mtvec_rdata(ex_mb__mtvec_rdata)
+                      , .mepc_rdata(ex_mb__mepc_rdata)
+                      );
 
 endmodule

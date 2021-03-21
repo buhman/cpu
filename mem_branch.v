@@ -4,7 +4,6 @@
 module mem_branch
 ( input         clk
 , input         pipe_flush
-, input         data_hazard
 
 , input         external_int
 
@@ -14,6 +13,8 @@ module mem_branch
 , input         ex_mb__ebreak
 
 , input         ex_mb__trap_return
+, input  [31:0] ex_mb__mtvec_rdata
+, input  [31:0] ex_mb__mepc_rdata
 
 , input  [31:0] ex_mb__pc
 , input  [31:0] ex_mb__imm
@@ -30,27 +31,24 @@ module mem_branch
 , input         ex_mb__jump_base_src
 , input   [1:0] ex_mb__jump_cond
 
-, input  [11:0] ex_mb__csr_addr
-, input   [1:0] ex_mb__csr_op
-, input         ex_mb__csr_src
-
 // output
 , output     [31:0] mb_if__jump_target
 , output            mb_if__branch_taken
 , output            mb_if__trap_taken
+, output      [4:0] mb_ex__trap_src
+, output     [31:0] mb_ex__dmem_addr
 
 , output reg  [1:0] mb_wb__dmem_width
 , output reg        mb_wb__dmem_zero_ext
 , output reg  [1:0] mb_wb__dmem_word_addr
 , output     [31:0] mb_wb__dmem_rdata
-
-, output     [31:0] mb_wb__csr_rdata
 );
    // input wires
 
    wire [31:0] dmem_wdata = ex_mb__rs2_rdata;
    wire [31:0] dmem_addr = ex_mb__alu_y;
    wire  [1:0] dmem_word_addr = dmem_addr[1:0];
+   assign mb_ex__dmem_addr = dmem_addr;
 
    // output wires
 
@@ -80,34 +78,16 @@ module mem_branch
                 , .rdata(mb_wb__dmem_rdata)
                 );
 
-   wire [31:0] csr_wdata = (ex_mb__csr_src == `CSR_SRC_RS1) ? ex_mb__rs1_rdata :
-                           ex_mb__imm;
+   /* FIXME : maybe this should come from csr_reg instead */
+   reg         last_external_int = 0;
+   wire        clear_int = last_external_int && !pipe_flush;
+   wire        set_int = !last_external_int && external_int;
+   always @(posedge clk) begin
+      if (clear_int) last_external_int <= 0;
+      if (set_int) last_external_int <= 1;
+   end
 
-   wire  [4:0] trap_src;
-   wire [31:0] mtvec_rdata;
-   wire [31:0] mepc_rdata;
-
-   csr_reg mb_csr_reg ( .clk(clk)
-                      , .addr(ex_mb__csr_addr)
-                      , .op(ex_mb__csr_op)
-                      , .wdata(csr_wdata)
-                      // trap state
-                      , .pc(ex_mb__pc)
-                      , .trap(mb_if__trap_taken)
-                      , .trap_src(trap_src)
-                      , .dmem_addr(dmem_addr)
-                      // counters
-                      , .pipe_flush(pipe_flush)
-                      , .data_hazard(data_hazard)
-                      // output
-                      , .rdata(mb_wb__csr_rdata)
-
-                      , .mtvec_rdata(mtvec_rdata)
-                      , .mepc_rdata(mepc_rdata)
-                      );
-
-   jump mb_jump ( .clk(clk)
-                , .pipe_flush(pipe_flush)
+   jump mb_jump ( .pipe_flush(pipe_flush)
 
                 , .pc(ex_mb__pc)
                 , .imm(ex_mb__imm)
@@ -117,7 +97,7 @@ module mem_branch
                 , .cond(ex_mb__jump_cond)
 
                 // trap control
-                , .external_int(external_int)
+                , .external_int(last_external_int)
 
                 , .ins_illegal(ex_mb__ins_illegal)
                 , .ins_misalign(ex_mb__ins_misalign)
@@ -125,16 +105,16 @@ module mem_branch
                 , .ebreak(ex_mb__ebreak)
                 , .store_misalign(store_misalign)
                 , .load_misalign(load_misalign)
-                , .mtvec_rdata(mtvec_rdata)
 
                 , .trap_return(ex_mb__trap_return)
-                , .mepc_rdata(mepc_rdata)
+                , .mtvec_rdata(ex_mb__mtvec_rdata)
+                , .mepc_rdata(ex_mb__mepc_rdata)
 
                 // outputs
                 , .jump_target(mb_if__jump_target)
                 , .branch_taken(mb_if__branch_taken)
                 , .trap_taken(mb_if__trap_taken)
-                , .trap_src(trap_src)
+                , .trap_src(mb_ex__trap_src)
                 );
 
    always @(posedge clk) begin

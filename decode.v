@@ -10,6 +10,8 @@ module decode
 
 , input       [31:0] if_id__pc
 
+, input              if_id__data_hazard
+
 // falling-edge register writeback input
 , input              wb_id__rd_wen
 , input       [31:0] wb_id__rd_wdata
@@ -137,7 +139,7 @@ module decode
    assign id_ex__rs1_rdata = rs1_rdata;
    assign id_ex__rs2_rdata = rs2_rdata;
 
-   wire bubble = pipe_flush || data_hazard;
+   wire bubble = pipe_flush || if_id__data_hazard;
    wire trap_return;
 
    always @(posedge clk) begin

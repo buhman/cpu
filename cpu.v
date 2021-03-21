@@ -19,6 +19,8 @@ module cpu
 
    wire        if_id__predict_taken;
 
+   wire        if_id__instret;
+
    /* id -> ex */
    wire        id_ex__ins_misalign;
    wire        id_ex__ins_illegal;
@@ -28,6 +30,8 @@ module cpu
    wire        id_ex__trap_return;
 
    wire [31:0] id_ex__pc;
+
+   wire        if_id__data_hazard;
 
    wire [31:0] id_ex__rs1_rdata;
    wire [31:0] id_ex__rs2_rdata;
@@ -56,6 +60,8 @@ module cpu
    wire        id_ex__csr_src;
 
    reg         id_ex__predict_taken;
+
+   reg         id_ex__instret; // performance counter
 
    /* ex -> mb */
    reg         ex_mb__ins_misalign;
@@ -89,12 +95,22 @@ module cpu
 
    reg         ex_mb__predict_taken;
 
+   wire [31:0] ex_mb__csr_rdata;
+   wire [31:0] ex_mb__mtvec_rdata;
+   wire [31:0] ex_mb__mepc_rdata;
+
+   reg         ex_mb__instret;
+
    /* mb -> if */
    wire [31:0] mb_if__jump_target;
    wire        mb_if__branch_taken;
    wire        mb_if__trap_taken;
    wire        mb_if__predict_taken = ex_mb__predict_taken;
    wire [31:0] mb_if__pc_4 = ex_mb__pc_4;
+
+   /* mb -> ex */
+   wire  [4:0] mb_ex__trap_src;
+   wire [31:0] mb_ex__dmem_addr;
 
    /* mb -> wb */
    reg   [1:0] mb_wb__rd_src;
@@ -108,7 +124,7 @@ module cpu
    wire  [1:0] mb_wb__dmem_word_addr;
    wire [31:0] mb_wb__dmem_rdata;
 
-   wire [31:0] mb_wb__csr_rdata;
+   reg  [31:0] mb_wb__csr_rdata;
 
    /* wb -> id */
    wire        wb_id__rd_wen;
@@ -130,6 +146,9 @@ module cpu
                    , .if_id__pc(if_id__pc)
                    , .if_id__ins(if_id__ins)
                    , .if_id__predict_taken(if_id__predict_taken)
+
+                   , .if_id__data_hazard(if_id__data_hazard)
+                   , .if_id__instret(if_id__instret)
                    );
 
    /* decode */
@@ -142,6 +161,9 @@ module cpu
 
                      , .if_id__pc(if_id__pc)
 
+                     , .if_id__data_hazard(if_id__data_hazard)
+
+                     // falling-edge register writeback input
                      , .wb_id__rd_wen(wb_id__rd_wen)
                      , .wb_id__rd_wdata(wb_id__rd_wdata)
                      , .wb_id__rd_addr(wb_id__rd_addr)
@@ -188,12 +210,14 @@ module cpu
    /* if/id -> id/ex pass-through */
    always @(posedge clk) begin
       id_ex__predict_taken <= pipe_flush ? 1'b0 : if_id__predict_taken;
+      id_ex__instret <= pipe_flush ? 1'b0 : if_id__instret; // performance counter
    end
 
    /* execute */
 
    execute cpu_execute ( .clk(clk)
                        , .pipe_flush(pipe_flush)
+                       , .data_hazard(data_hazard)
 
                        , .id_ex__rs1_rdata(id_ex__rs1_rdata)
                        , .id_ex__rs2_rdata(id_ex__rs2_rdata)
@@ -210,6 +234,16 @@ module cpu
                        , .ex_mb__rd_wen(ex_mb__rd_wen)
                        , .mb_wb__rd_wen(mb_wb__rd_wen)
                        , .wb_id__rd_wdata(wb_id__rd_wdata)
+                       // control and status register unit
+                       , .id_ex__csr_addr(id_ex__csr_addr)
+                       , .id_ex__csr_op(id_ex__csr_op)
+                       , .id_ex__csr_src(id_ex__csr_src)
+
+                       , .mb_if__trap_taken(mb_if__trap_taken)
+                       , .mb_ex__trap_src(mb_ex__trap_src)
+                       , .mb_ex__dmem_addr(mb_ex__dmem_addr)
+
+                       , .wb_ex__instret(ex_mb__instret)
                        // output
                        , .ex_mb__alu_y(ex_mb__alu_y)
                        , .ex_mb__alu_zero(ex_mb__alu_zero)
@@ -218,6 +252,10 @@ module cpu
                        // forwarding unit output
                        , .ex_mb__rs1_rdata(ex_mb__rs1_rdata)
                        , .ex_mb__rs2_rdata(ex_mb__rs2_rdata)
+                       // control and status register unit output
+                       , .ex_mb__csr_rdata(ex_mb__csr_rdata)
+                       , .ex_mb__mtvec_rdata(ex_mb__mtvec_rdata)
+                       , .ex_mb__mepc_rdata(ex_mb__mepc_rdata)
                        );
 
    // if/ex -> ex/mb passthrough
@@ -248,13 +286,14 @@ module cpu
       ex_mb__csr_src <= id_ex__csr_src;
 
       ex_mb__predict_taken <= pipe_flush ? 1'b0 : id_ex__predict_taken;
+
+      ex_mb__instret <= pipe_flush ? 1'b0 : id_ex__instret;
    end
 
    /* mb/wb */
 
    mem_branch cpu_mem_branch ( .clk(clk)
                              , .pipe_flush(pipe_flush)
-                             , .data_hazard(data_hazard)
 
                              , .external_int(external_int)
 
@@ -264,6 +303,8 @@ module cpu
                              , .ex_mb__ebreak(ex_mb__ebreak)
 
                              , .ex_mb__trap_return(ex_mb__trap_return)
+                             , .ex_mb__mtvec_rdata(ex_mb__mtvec_rdata)
+                             , .ex_mb__mepc_rdata(ex_mb__mepc_rdata)
 
                              , .ex_mb__pc(ex_mb__pc)
                              , .ex_mb__imm(ex_mb__imm)
@@ -280,20 +321,17 @@ module cpu
                              , .ex_mb__jump_base_src(ex_mb__jump_base_src)
                              , .ex_mb__jump_cond(ex_mb__jump_cond)
 
-                             , .ex_mb__csr_addr(ex_mb__csr_addr)
-                             , .ex_mb__csr_op(ex_mb__csr_op)
-                             , .ex_mb__csr_src(ex_mb__csr_src)
                              // output
                              , .mb_if__jump_target(mb_if__jump_target)
                              , .mb_if__branch_taken(mb_if__branch_taken)
                              , .mb_if__trap_taken(mb_if__trap_taken)
+                             , .mb_ex__trap_src(mb_ex__trap_src)
+                             , .mb_ex__dmem_addr(mb_ex__dmem_addr)
 
                              , .mb_wb__dmem_width(mb_wb__dmem_width)
                              , .mb_wb__dmem_zero_ext(mb_wb__dmem_zero_ext)
                              , .mb_wb__dmem_word_addr(mb_wb__dmem_word_addr)
                              , .mb_wb__dmem_rdata(mb_wb__dmem_rdata)
-
-                             , .mb_wb__csr_rdata(mb_wb__csr_rdata)
                              );
 
    reg [31:0] mb_wb__pc; // debug-only
@@ -305,6 +343,8 @@ module cpu
       mb_wb__pc_4 <= ex_mb__pc_4;
       mb_wb__rd_wen <= (mb_if__trap_taken || pipe_flush) ? 1'b0 : ex_mb__rd_wen;
       mb_wb__rd_addr <= ex_mb__rd_addr;
+
+      mb_wb__csr_rdata <= ex_mb__csr_rdata;
    end
 
    /* writeback */
@@ -320,6 +360,7 @@ module cpu
                            , .dmem_rdata(mb_wb__dmem_rdata)
 
                            , .csr_rdata(mb_wb__csr_rdata)
+
                            // output
                            , .rd_wdata(wb_id__rd_wdata)
                            );

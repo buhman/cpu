@@ -11,9 +11,9 @@ module csr_reg
 , input             trap
 , input       [4:0] trap_src
 , input      [31:0] dmem_addr
-// counters
 , input             pipe_flush
-, input             data_hazard
+// counters
+, input             instret
 // output
 , output reg [31:0] rdata
 , output reg [31:0] mtvec_rdata
@@ -68,7 +68,8 @@ module csr_reg
 
    wire [31:0] cause_decode = {last_trap_src[4], {27{1'b0}}, last_trap_src[3:0]};
    reg   [1:0] trap_state = 0;
-   wire        trap_write = trap || (trap_state != 0);
+   wire        trap_flush = trap && !pipe_flush;
+   wire        trap_write = trap_flush || (trap_state != 0);
 
    (* always_ff *)
    always @(posedge clk) begin
@@ -102,29 +103,11 @@ module csr_reg
 
    // ice40: 216 LC
    `ifdef ENABLE_COUNTERS
-   reg [31:0] next_minstret = 32'h00000001;
-
-   reg  [1:0] pipe_flush_ctr = 2'd0;
-   wire       pipe_flush_zero = pipe_flush_ctr == 2'd0;
-
-   reg  [1:0] data_hazard_ctr = 2'd0;
-   wire       data_hazard_zero = data_hazard_ctr == 2'd0;
-   wire       data_hazard_three = data_hazard_ctr == 2'd3;
-
-   wire       instret = !data_hazard_three && !pipe_flush && pipe_flush_zero;
 
    (* always_ff *)
    always @(posedge clk) begin
-      if (pipe_flush) pipe_flush_ctr <= 2'd2;
-      if (!pipe_flush_zero) pipe_flush_ctr <= pipe_flush_ctr + 2'd1;
-
-      if (data_hazard) data_hazard_ctr <= 2'd2;
-      if (!data_hazard_zero) data_hazard_ctr <= data_hazard_ctr + 2'd1;
-
-      if (instret) begin
-         next_minstret <= next_minstret + 1;
-         regs[minstret] <= next_minstret;
-      end
+      if (instret)
+        regs[minstret] <= regs[minstret] + 1;
 
       regs[mcycle] <= regs[mcycle] + 1;
    end

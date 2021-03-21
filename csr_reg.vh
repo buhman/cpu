@@ -23,7 +23,7 @@ localparam mepc     = 2;
 localparam mcause   = 3;
 localparam mtval    = 4;
 
-//`define ENABLE_COUNTERS 1
+`define ENABLE_COUNTERS 1
 `ifdef ENABLE_COUNTERS
 localparam mcycle   = 5;
 localparam minstret = 6;

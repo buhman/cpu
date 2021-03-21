@@ -12,6 +12,7 @@ module writeback
 , input      [31:0] dmem_rdata
 
 , input      [31:0] csr_rdata
+
 // output
 , output reg [31:0] rd_wdata
 );
