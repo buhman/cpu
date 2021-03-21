@@ -126,7 +126,7 @@ module cpu
 
    reg  [31:0] mb_wb__csr_rdata;
 
-   reg         mb_ex__instret;
+   reg         mb_ex__instret = 0;
 
    /* wb -> id */
    wire        wb_id__rd_wen;
