@@ -31,7 +31,7 @@ module execute
 , input   [4:0] mb_ex__trap_src
 , input  [31:0] mb_ex__dmem_addr
 
-, input         wb_ex__instret
+, input         mb_ex__instret
 // arithmetic-logic unit output
 , output reg [31:0] ex_mb__alu_y
 , output reg        ex_mb__alu_zero
@@ -119,12 +119,11 @@ module execute
                       , .dmem_addr(mb_ex__dmem_addr)
                       , .pipe_flush(pipe_flush)
                       // counters
-                      , .instret(wb_ex__instret)
+                      , .instret(mb_ex__instret)
                       // output
                       , .rdata(ex_mb__csr_rdata)
 
                       , .mtvec_rdata(ex_mb__mtvec_rdata)
                       , .mepc_rdata(ex_mb__mepc_rdata)
                       );
-
 endmodule

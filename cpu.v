@@ -126,6 +126,8 @@ module cpu
 
    reg  [31:0] mb_wb__csr_rdata;
 
+   reg         mb_ex__instret;
+
    /* wb -> id */
    wire        wb_id__rd_wen;
    wire [31:0] wb_id__rd_wdata;
@@ -243,7 +245,7 @@ module cpu
                        , .mb_ex__trap_src(mb_ex__trap_src)
                        , .mb_ex__dmem_addr(mb_ex__dmem_addr)
 
-                       , .wb_ex__instret(ex_mb__instret)
+                       , .mb_ex__instret(mb_ex__instret)
                        // output
                        , .ex_mb__alu_y(ex_mb__alu_y)
                        , .ex_mb__alu_zero(ex_mb__alu_zero)
@@ -345,6 +347,8 @@ module cpu
       mb_wb__rd_addr <= ex_mb__rd_addr;
 
       mb_wb__csr_rdata <= ex_mb__csr_rdata;
+
+      mb_ex__instret <= (mb_if__trap_taken || pipe_flush) ? 1'b0 : ex_mb__instret;
    end
 
    /* writeback */
