@@ -237,7 +237,7 @@ module control
                        (ins_lw || ins_sw)            ? `ENCDEC_WORD :
                        `ENCDEC_ZERO;
 
-   assign dmem_zero_ext = !(ins_lbu || ins_lhu);
+   assign dmem_zero_ext = (ins_lbu || ins_lhu);
    assign dmem_read = op_load;
    assign dmem_write = op_store;
 
