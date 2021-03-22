@@ -23,10 +23,12 @@ module fetch
    reg         bubble = 0;
    wire        no_hazard = bubble || !data_hazard;
 
+   wire read_next_pc = pipe_flush || mispredict || no_hazard;
+
    wire [31:0] ins;
    imem if_imem ( .clk(!clk)
                 , .addr(pc[9:2])
-                , .read(no_hazard)
+                , .read(read_next_pc)
                 // output
                 , .data(ins)
                 );
@@ -58,19 +60,19 @@ module fetch
                     `endif
                     pc4;
 
-   wire        data_hazard_next = data_hazard && !no_hazard;
+   wire        data_hazard_next = !pipe_flush && data_hazard && !no_hazard;
    assign if_id__data_hazard = data_hazard_next;
    assign if_id__instret = !data_hazard_next;
 
    always @(posedge clk) begin
       if_id__ins_misalign <= ins_misalign;
 
-      if (no_hazard) begin
+      if (read_next_pc) begin
          if_id__pc <= pc;
          pc <= next_pc;
       end
 
-      bubble <= data_hazard && !bubble;
+      bubble <= !pipe_flush && data_hazard && !bubble;
 
       if_id__ins <= ins;
 
