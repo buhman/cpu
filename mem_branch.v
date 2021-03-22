@@ -45,6 +45,7 @@ module mem_branch
 );
    // input wires
 
+   wire        dmem_write = !pipe_flush && ex_mb__dmem_write;
    wire [31:0] dmem_wdata = ex_mb__rs2_rdata;
    wire [31:0] dmem_addr = ex_mb__alu_y;
    wire  [1:0] dmem_word_addr = dmem_addr[1:0];
@@ -53,7 +54,7 @@ module mem_branch
    // output wires
 
    wire misalign = (ex_mb__dmem_width == `ENCDEC_HALF && dmem_word_addr == 2'b11)
-                  || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
+                || (ex_mb__dmem_width == `ENCDEC_WORD && dmem_word_addr != 2'b00);
    wire load_misalign = misalign && ex_mb__dmem_read;
    wire store_misalign = misalign && ex_mb__dmem_write;
 
@@ -62,7 +63,7 @@ module mem_branch
 
    dmem_encode mb_dmem_encode ( .width(ex_mb__dmem_width)
                               , .addr(dmem_word_addr)
-                              , .write(ex_mb__dmem_write)
+                              , .write(dmem_write)
                               , .wdata(dmem_wdata)
                                 // output
                               , .writeb(dmem_writeb)
