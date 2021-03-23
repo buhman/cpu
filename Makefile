@@ -5,7 +5,7 @@ PINMAP = sigma.pcf
 
 # Files
 FILES =
-FILES += branch_predict.v
+FILES += btb.v
 FILES += control.v
 FILES += cpu.v
 FILES += csr_reg.v
@@ -53,6 +53,7 @@ $(BUILD)/$(PROJ)-ice40.asc: $(BUILD)/$(PROJ)-ice40.json
 		--no-print-critical-path-source \
 		--hx8k --package ct256 \
 		--pcf $(PINMAP) --pcf-allow-unconstrained \
+		--opt-timing \
 		--json $< \
 		--asc $@
 

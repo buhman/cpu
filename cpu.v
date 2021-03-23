@@ -18,6 +18,7 @@ module cpu
    wire [31:0] if_id__ins;
 
    wire        if_id__predict_taken;
+   wire [31:0] if_id__predict_target;
 
    wire        if_id__instret;
 
@@ -60,6 +61,7 @@ module cpu
    wire        id_ex__csr_src;
 
    reg         id_ex__predict_taken;
+   reg  [31:0] id_ex__predict_target;
 
    reg         id_ex__instret; // performance counter
 
@@ -94,6 +96,7 @@ module cpu
    reg         ex_mb__csr_src;
 
    reg         ex_mb__predict_taken;
+   reg  [31:0] ex_mb__predict_target;
 
    wire [31:0] ex_mb__csr_rdata;
    wire [31:0] ex_mb__mtvec_rdata;
@@ -106,6 +109,8 @@ module cpu
    wire        mb_if__branch_taken;
    wire        mb_if__trap_taken;
    wire        mb_if__predict_taken = ex_mb__predict_taken;
+   wire [31:0] mb_if__predict_target = ex_mb__predict_target;
+   wire [31:0] mb_if__pc = ex_mb__pc;
    wire [31:0] mb_if__pc_4 = ex_mb__pc_4;
 
    /* mb -> ex */
@@ -145,6 +150,8 @@ module cpu
                    , .mb_if__branch_taken(mb_if__branch_taken)
                    , .mb_if__trap_taken(mb_if__trap_taken)
                    , .mb_if__predict_taken(mb_if__predict_taken)
+                   , .mb_if__predict_target(mb_if__predict_target)
+                   , .mb_if__pc(mb_if__pc)
                    , .mb_if__pc_4(mb_if__pc_4)
                    // output
                    , .pipe_flush(pipe_flush)
@@ -152,6 +159,7 @@ module cpu
                    , .if_id__pc(if_id__pc)
                    , .if_id__ins(if_id__ins)
                    , .if_id__predict_taken(if_id__predict_taken)
+                   , .if_id__predict_target(if_id__predict_target)
 
                    , .if_id__data_hazard(if_id__data_hazard)
                    , .if_id__instret(if_id__instret)
@@ -216,6 +224,7 @@ module cpu
    /* if/id -> id/ex pass-through */
    always @(posedge clk) begin
       id_ex__predict_taken <= not_pipe_flush && if_id__predict_taken;
+      id_ex__predict_target <= if_id__predict_target;
       id_ex__instret <= not_pipe_flush && if_id__instret; // performance counter
    end
 
@@ -292,6 +301,7 @@ module cpu
       ex_mb__csr_src <= id_ex__csr_src;
 
       ex_mb__predict_taken <= not_pipe_flush && id_ex__predict_taken;
+      ex_mb__predict_target <= id_ex__predict_target;
 
       ex_mb__instret <= not_pipe_flush && id_ex__instret;
    end
