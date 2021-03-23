@@ -133,6 +133,10 @@ module cpu
    wire [31:0] wb_id__rd_wdata;
    wire  [4:0] wb_id__rd_addr;
 
+   /* global signals */
+
+   wire        not_pipe_flush = !pipe_flush;
+
    /* fetch */
 
    fetch cpu_fetch ( .clk(clk)
@@ -211,8 +215,8 @@ module cpu
 
    /* if/id -> id/ex pass-through */
    always @(posedge clk) begin
-      id_ex__predict_taken <= pipe_flush ? 1'b0 : if_id__predict_taken;
-      id_ex__instret <= pipe_flush ? 1'b0 : if_id__instret; // performance counter
+      id_ex__predict_taken <= not_pipe_flush && if_id__predict_taken;
+      id_ex__instret <= not_pipe_flush && if_id__instret; // performance counter
    end
 
    /* execute */
@@ -262,34 +266,34 @@ module cpu
 
    // if/ex -> ex/mb passthrough
    always @(posedge clk) begin
-      ex_mb__ins_misalign <= pipe_flush ? 1'b0 : id_ex__ins_misalign;
-      ex_mb__ins_illegal  <= pipe_flush ? 1'b0 : id_ex__ins_illegal;
-      ex_mb__ecall    <= pipe_flush ? 1'b0 : id_ex__ecall;
-      ex_mb__ebreak   <= pipe_flush ? 1'b0 : id_ex__ebreak;
+      ex_mb__ins_misalign <= not_pipe_flush && id_ex__ins_misalign;
+      ex_mb__ins_illegal  <= not_pipe_flush && id_ex__ins_illegal;
+      ex_mb__ecall    <= not_pipe_flush && id_ex__ecall;
+      ex_mb__ebreak   <= not_pipe_flush && id_ex__ebreak;
 
-      ex_mb__trap_return <= pipe_flush ? 1'b0 : id_ex__trap_return;
+      ex_mb__trap_return <= not_pipe_flush && id_ex__trap_return;
 
       ex_mb__imm <= id_ex__imm;
 
       ex_mb__dmem_width <= id_ex__dmem_width;
       ex_mb__dmem_zero_ext <= id_ex__dmem_zero_ext;
-      ex_mb__dmem_read <= pipe_flush ? 1'b0 : id_ex__dmem_read;
-      ex_mb__dmem_write <= pipe_flush ? 1'b0 : id_ex__dmem_write;
+      ex_mb__dmem_read <= not_pipe_flush && id_ex__dmem_read;
+      ex_mb__dmem_write <= not_pipe_flush && id_ex__dmem_write;
 
       ex_mb__jump_base_src <= id_ex__jump_base_src;
       ex_mb__jump_cond <= pipe_flush ? `COND_NEVER : id_ex__jump_cond;
 
       ex_mb__rd_src <= id_ex__rd_src;
-      ex_mb__rd_wen <= pipe_flush ? 1'b0 : id_ex__rd_wen;
+      ex_mb__rd_wen <= not_pipe_flush && id_ex__rd_wen;
       ex_mb__rd_addr <= id_ex__rd_addr;
 
       ex_mb__csr_addr <= id_ex__csr_addr;
       ex_mb__csr_op <= pipe_flush ? `CSR_NOP : id_ex__csr_op;
       ex_mb__csr_src <= id_ex__csr_src;
 
-      ex_mb__predict_taken <= pipe_flush ? 1'b0 : id_ex__predict_taken;
+      ex_mb__predict_taken <= not_pipe_flush && id_ex__predict_taken;
 
-      ex_mb__instret <= pipe_flush ? 1'b0 : id_ex__instret;
+      ex_mb__instret <= not_pipe_flush && id_ex__instret;
    end
 
    /* mb/wb */
