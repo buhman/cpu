@@ -34,7 +34,6 @@ module execute
 , input         mb_ex__instret
 // arithmetic-logic unit output
 , output reg [31:0] ex_mb__alu_y
-, output reg        ex_mb__alu_zero
 , output reg [31:0] ex_mb__pc
 , output reg [31:0] ex_mb__pc_4
 // forwarding unit output
@@ -83,20 +82,17 @@ module execute
    reg  [31:0] alu_a;
    reg  [31:0] alu_b;
    wire [31:0] alu_y;
-   wire        alu_zero;
 
    int_alu ex_int_alu ( .op(id_ex__alu_op)
                       , .a(alu_a)
                       , .b(alu_b)
                       , .y(alu_y)
-                      , .zero(alu_zero)
                       );
 
    wire [31:0] pc_4 = id_ex__pc + 4;
 
    always @(posedge clk) begin
       ex_mb__alu_y <= alu_y;
-      ex_mb__alu_zero <= alu_zero;
       ex_mb__pc <= pipe_flush ? 32'hffffffff : id_ex__pc;
       ex_mb__pc_4 <= pipe_flush ? 32'hffffffff : pc_4;
 

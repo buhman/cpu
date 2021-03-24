@@ -8,3 +8,4 @@
 `define ALU_XOR 4'b0111
 `define ALU_OR  4'b1000
 `define ALU_AND 4'b1001
+`define ALU_EQ  4'b1010

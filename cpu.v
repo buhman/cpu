@@ -79,7 +79,6 @@ module cpu
    wire [31:0] ex_mb__rs1_rdata;
    wire [31:0] ex_mb__rs2_rdata;
    wire [31:0] ex_mb__alu_y;
-   wire        ex_mb__alu_zero;
    reg   [1:0] ex_mb__dmem_width;
    reg         ex_mb__dmem_zero_ext;
    reg         ex_mb__dmem_read = 0;
@@ -261,7 +260,6 @@ module cpu
                        , .mb_ex__instret(mb_ex__instret)
                        // output
                        , .ex_mb__alu_y(ex_mb__alu_y)
-                       , .ex_mb__alu_zero(ex_mb__alu_zero)
                        , .ex_mb__pc(ex_mb__pc)
                        , .ex_mb__pc_4(ex_mb__pc_4)
                        // forwarding unit output
@@ -327,7 +325,6 @@ module cpu
                              , .ex_mb__rs1_rdata(ex_mb__rs1_rdata)
                              , .ex_mb__rs2_rdata(ex_mb__rs2_rdata)
                              , .ex_mb__alu_y(ex_mb__alu_y)
-                             , .ex_mb__alu_zero(ex_mb__alu_zero)
 
                              , .ex_mb__dmem_width(ex_mb__dmem_width)
                              , .ex_mb__dmem_zero_ext(ex_mb__dmem_zero_ext)

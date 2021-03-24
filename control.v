@@ -197,7 +197,7 @@ module control
 
    /* alu decode */
    wire alu_add = ins_lui || ins_auipc || ins_jal || ins_jalr || op_load || op_store || ins_addi || ins_add;
-   wire alu_sub = ins_beq || ins_bne || ins_sub;
+   wire alu_sub = ins_sub;
    wire alu_sll = ins_slli || ins_sll;
    wire alu_srl = ins_srli || ins_srl;
    wire alu_sra = ins_srai || ins_sra;
@@ -206,6 +206,7 @@ module control
    wire alu_xor = ins_xori || ins_xor;
    wire alu_or  = ins_ori  || ins_or;
    wire alu_and = ins_andi || ins_and;
+   wire alu_eq  = ins_beq || ins_bne;
 
    assign alu_op = alu_add ? `ALU_ADD :
                    alu_sub ? `ALU_SUB :
@@ -217,6 +218,7 @@ module control
                    alu_xor ? `ALU_XOR :
                    alu_or  ? `ALU_OR  :
                    alu_and ? `ALU_AND :
+                   alu_eq  ? `ALU_EQ  :
                    0;
 
    assign alu_a_src = op_lui   ? `ALU_A_ZERO : // bypass instead?
@@ -244,9 +246,9 @@ module control
    /* jump control decode */
    assign jump_base_src = ins_jalr ? `BASE_SRC_RS1 : `BASE_SRC_PC;
 
-   assign jump_cond = (ins_jal || ins_jalr)            ? `COND_ALWAYS   :
-                      (ins_beq || ins_bge || ins_bgeu) ? `COND_EQ_ZERO  :
-                      (ins_bne || ins_blt || ins_bltu) ? `COND_NEQ_ZERO :
+   assign jump_cond = (ins_jal || ins_jalr)            ? `COND_ALWAYS :
+                      (ins_bne || ins_bge || ins_bgeu) ? `COND_ZERO   :
+                      (ins_beq || ins_blt || ins_bltu) ? `COND_ONE    :
                       `COND_NEVER;
 
    /* int reg control decode */

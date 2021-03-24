@@ -11,7 +11,7 @@ module btb
 , output [31:0] predict_target
 , output        predict_taken
 );
-   localparam ENTRIES = 4;
+   localparam ENTRIES = 8;
    localparam INDEX_BITS = $clog2(ENTRIES);
    localparam OFFSET = 2;
 

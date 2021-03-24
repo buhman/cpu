@@ -21,7 +21,6 @@ module mem_branch
 , input  [31:0] ex_mb__rs1_rdata
 , input  [31:0] ex_mb__rs2_rdata
 , input  [31:0] ex_mb__alu_y
-, input         ex_mb__alu_zero
 
 , input   [1:0] ex_mb__dmem_width
 , input         ex_mb__dmem_zero_ext
@@ -93,7 +92,7 @@ module mem_branch
                 , .pc(ex_mb__pc)
                 , .imm(ex_mb__imm)
                 , .rs1_rdata(ex_mb__rs1_rdata)
-                , .alu_zero(ex_mb__alu_zero)
+                , .alu_y_lsb(ex_mb__alu_y[0])
                 , .base_src(ex_mb__jump_base_src)
                 , .cond(ex_mb__jump_cond)
 
