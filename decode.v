@@ -146,7 +146,7 @@ module decode
       id_ex__ebreak       <= bubble ? 1'b0 : ebreak;
       id_ex__trap_return  <= bubble ? 1'b0 : trap_return;
 
-      id_ex__pc <= bubble ? 32'hffffffff : if_id__pc;
+      id_ex__pc <= if_id__pc;
 
       id_ex__imm <= imm;
       id_ex__rs1_addr <= rs1_addr;
