@@ -109,6 +109,7 @@ module cpu
    wire [31:0] mb_if__pc_4 = ex_mb__pc_4;
 
    /* mb -> ex */
+   wire [31:0] mb_ex__trap_pc;
    wire  [4:0] mb_ex__trap_src;
    wire [31:0] mb_ex__dmem_addr;
 
@@ -246,6 +247,7 @@ module cpu
                        , .id_ex__csr_op(id_ex__csr_op)
                        , .id_ex__csr_src(id_ex__csr_src)
 
+                       , .mb_ex__trap_pc(mb_ex__trap_pc)
                        , .mb_if__trap_taken(mb_if__trap_taken)
                        , .mb_ex__trap_src(mb_ex__trap_src)
                        , .mb_ex__dmem_addr(mb_ex__dmem_addr)
@@ -328,6 +330,8 @@ module cpu
                              // output
                              , .mb_if__jump_target(mb_if__jump_target)
                              , .mb_if__branch_taken(mb_if__branch_taken)
+
+                             , .mb_ex__trap_pc(mb_ex__trap_pc)
                              , .mb_if__trap_taken(mb_if__trap_taken)
                              , .mb_ex__trap_src(mb_ex__trap_src)
                              , .mb_ex__dmem_addr(mb_ex__dmem_addr)

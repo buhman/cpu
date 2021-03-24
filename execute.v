@@ -27,6 +27,7 @@ module execute
 , input   [1:0] id_ex__csr_op
 , input         id_ex__csr_src
 
+, input  [31:0] mb_ex__trap_pc
 , input         mb_if__trap_taken
 , input   [4:0] mb_ex__trap_src
 , input  [31:0] mb_ex__dmem_addr
@@ -110,7 +111,7 @@ module execute
                       , .op(id_ex__csr_op)
                       , .wdata(csr_wdata)
                       // trap state
-                      , .pc(id_ex__pc)
+                      , .pc(mb_ex__trap_pc)
                       , .trap(mb_if__trap_taken)
                       , .trap_src(mb_ex__trap_src)
                       , .dmem_addr(mb_ex__dmem_addr)

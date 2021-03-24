@@ -32,6 +32,8 @@ module mem_branch
 // output
 , output     [31:0] mb_if__jump_target
 , output            mb_if__branch_taken
+
+, output     [31:0] mb_ex__trap_pc
 , output            mb_if__trap_taken
 , output      [4:0] mb_ex__trap_src
 , output     [31:0] mb_ex__dmem_addr
@@ -58,6 +60,8 @@ module mem_branch
 
    wire  [3:0] dmem_writeb;
    wire [31:0] dmem_wdata__encode;
+
+   assign mb_ex__trap_pc = ex_mb__pc;
 
    dmem_encode mb_dmem_encode ( .width(ex_mb__dmem_width)
                               , .addr(dmem_word_addr)
