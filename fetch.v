@@ -10,7 +10,6 @@ module fetch
 , input      [31:0] mb_if__pc_4
 // output
 , output reg        pipe_flush = 1
-, output reg        if_id__ins_misalign
 , output reg [31:0] if_id__pc
 , output reg [31:0] if_id__ins
 , output reg        if_id__predict_taken
@@ -23,7 +22,6 @@ module fetch
    wire [31:0] pc4 = pc + 4;
    wire [31:0] next_pc;
 
-   wire ins_misalign = (pc[1:0] != 2'b00);
    reg  bubble = 0;
    wire no_hazard = bubble || !data_hazard;
 
@@ -60,15 +58,10 @@ module fetch
    wire        mispredict = !pipe_flush && (predict_taken_neq || (mb_if__branch_taken && predict_target_neq));
    wire [31:0] mispredict_target = mb_if__branch_taken ? mb_if__jump_target : mb_if__pc_4;
 
-   `define BRANCH_PREDICTION 1
 
    assign next_pc = trap_taken ? mb_if__jump_target :
-                    `ifdef BRANCH_PREDICTION
                     mispredict ? mispredict_target :
                     predict_taken ? predict_target :
-                    `else
-                    branch_taken ? mb_if__jump_target :
-                    `endif
                     pc4;
 
    wire        data_hazard_next = !pipe_flush && data_hazard && !no_hazard;
@@ -76,8 +69,6 @@ module fetch
    assign if_id__instret = !data_hazard_next;
 
    always @(posedge clk) begin
-      if_id__ins_misalign <= ins_misalign;
-
       if (read_next_pc) begin
          if_id__pc <= pc;
          pc <= next_pc;
@@ -87,11 +78,7 @@ module fetch
 
       if_id__ins <= ins;
 
-      `ifdef BRANCH_PREDICTION
       pipe_flush <= (mispredict || trap_taken);
-      `else
-      pipe_flush <= (branch_taken || trap_taken);
-      `endif
 
       if_id__predict_taken <= predict_taken;
       if_id__predict_target <= predict_target;

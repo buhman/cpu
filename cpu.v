@@ -12,8 +12,6 @@ module cpu
    wire data_hazard;
 
    /* if -> id */
-   wire        if_id__ins_misalign;
-
    wire [31:0] if_id__pc;
    wire [31:0] if_id__ins;
 
@@ -23,7 +21,6 @@ module cpu
    wire        if_id__instret;
 
    /* id -> ex */
-   wire        id_ex__ins_misalign;
    wire        id_ex__ins_illegal;
    wire        id_ex__ecall;
    wire        id_ex__ebreak;
@@ -66,7 +63,6 @@ module cpu
    reg         id_ex__instret; // performance counter
 
    /* ex -> mb */
-   reg         ex_mb__ins_misalign;
    reg         ex_mb__ins_illegal;
    reg         ex_mb__ecall;
    reg         ex_mb__ebreak;
@@ -154,7 +150,6 @@ module cpu
                    , .mb_if__pc_4(mb_if__pc_4)
                    // output
                    , .pipe_flush(pipe_flush)
-                   , .if_id__ins_misalign(if_id__ins_misalign)
                    , .if_id__pc(if_id__pc)
                    , .if_id__ins(if_id__ins)
                    , .if_id__predict_taken(if_id__predict_taken)
@@ -169,7 +164,6 @@ module cpu
    decode cpu_decode ( .clk(clk)
                      , .pipe_flush(pipe_flush)
 
-                     , .if_id__ins_misalign(if_id__ins_misalign)
                      , .if_id__ins(if_id__ins)
 
                      , .if_id__pc(if_id__pc)
@@ -182,7 +176,6 @@ module cpu
                      , .wb_id__rd_addr(wb_id__rd_addr)
 
                      // output
-                     , .id_ex__ins_misalign(id_ex__ins_misalign)
                      , .id_ex__ins_illegal(id_ex__ins_illegal)
                      , .id_ex__ecall(id_ex__ecall)
                      , .id_ex__ebreak(id_ex__ebreak)
@@ -273,7 +266,6 @@ module cpu
 
    // if/ex -> ex/mb passthrough
    always @(posedge clk) begin
-      ex_mb__ins_misalign <= not_pipe_flush && id_ex__ins_misalign;
       ex_mb__ins_illegal  <= not_pipe_flush && id_ex__ins_illegal;
       ex_mb__ecall    <= not_pipe_flush && id_ex__ecall;
       ex_mb__ebreak   <= not_pipe_flush && id_ex__ebreak;
@@ -311,7 +303,6 @@ module cpu
 
                              , .external_int(external_int)
 
-                             , .ex_mb__ins_misalign(ex_mb__ins_misalign)
                              , .ex_mb__ins_illegal(ex_mb__ins_illegal)
                              , .ex_mb__ecall(ex_mb__ecall)
                              , .ex_mb__ebreak(ex_mb__ebreak)

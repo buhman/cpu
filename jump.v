@@ -14,7 +14,6 @@ module jump
 , input         external_int
 
 , input         ins_illegal
-, input         ins_misalign
 , input         ecall
 , input         ebreak
 , input         store_misalign
@@ -34,6 +33,8 @@ module jump
 
     the branch unit requires a separate adder
     */
+
+   wire ins_misalign = target_misalign && branch_taken;
 
    /* trap control */
    assign trap_src = ins_illegal    ? `TRAP_INS_ILLEGAL    :
@@ -79,6 +80,8 @@ module jump
                         trap_return ? 32'h00000000 :
                         imm;
 
-   assign jump_target = base + offset;
+   /* assume trap_offset is aligned; the only other possibility is imm */
+   wire target_misalign = imm[1:0] != 2'b00;
+   assign jump_target = {base[31:2] + offset[31:2], 2'b00};
 
 endmodule

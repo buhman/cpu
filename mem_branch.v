@@ -7,7 +7,6 @@ module mem_branch
 
 , input         external_int
 
-, input         ex_mb__ins_misalign
 , input         ex_mb__ins_illegal
 , input         ex_mb__ecall
 , input         ex_mb__ebreak
@@ -100,7 +99,6 @@ module mem_branch
                 , .external_int(last_external_int)
 
                 , .ins_illegal(ex_mb__ins_illegal)
-                , .ins_misalign(ex_mb__ins_misalign)
                 , .ecall(ex_mb__ecall)
                 , .ebreak(ex_mb__ebreak)
                 , .store_misalign(store_misalign)

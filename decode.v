@@ -5,7 +5,6 @@ module decode
 ( input              clk
 , input              pipe_flush
 
-, input              if_id__ins_misalign
 , input       [31:0] if_id__ins
 
 , input       [31:0] if_id__pc
@@ -18,7 +17,6 @@ module decode
 , input        [4:0] wb_id__rd_addr
 
 // output
-, output reg         id_ex__ins_misalign
 , output reg         id_ex__ins_illegal
 , output reg         id_ex__ecall
 , output reg         id_ex__ebreak
@@ -143,8 +141,7 @@ module decode
    wire trap_return;
 
    always @(posedge clk) begin
-      id_ex__ins_misalign <= bubble ? 1'b0 : if_id__ins_misalign;
-      id_ex__ins_illegal  <= bubble ? 1'b0 : if_id__ins_misalign ? 1'b0 : ins_illegal;
+      id_ex__ins_illegal  <= bubble ? 1'b0 : ins_illegal;
       id_ex__ecall        <= bubble ? 1'b0 : ecall;
       id_ex__ebreak       <= bubble ? 1'b0 : ebreak;
       id_ex__trap_return  <= bubble ? 1'b0 : trap_return;
