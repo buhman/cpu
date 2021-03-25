@@ -218,7 +218,7 @@ module cpu
 
    /* if/id -> id/ex pass-through */
    always @(posedge clk) begin
-      id_ex__predict_taken <= not_pipe_flush && if_id__predict_taken;
+      id_ex__predict_taken <= !data_hazard && not_pipe_flush && if_id__predict_taken;
       id_ex__predict_target <= if_id__predict_target;
       id_ex__instret <= not_pipe_flush && if_id__instret; // performance counter
    end

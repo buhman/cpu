@@ -37,12 +37,14 @@ module fetch
    wire [31:0] predict_target;
    wire        predict_taken;
 
+   wire [31:0] btb_pc = data_hazard ? if_id__pc : pc;
+
    btb if_btb ( .clk(clk)
               , .update_pc(mb_if__pc)
               , .update_target(mb_if__jump_target)
               , .update_taken(mb_if__branch_taken)
 
-              , .pc(pc)
+              , .pc(btb_pc)
 
               // output
               , .predict_target(predict_target)
