@@ -1,0 +1,3 @@
+b cpu_test.c:68
+b cpu_test.c:60
+run ../aoc2020/day12/part1.bin ../aoc2020/day12/input.txt
