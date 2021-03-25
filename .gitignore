@@ -2,6 +2,7 @@
 *.elf
 *.imem
 *.o
+*.a
 build/
 tb/logs/
 tb/obj_dir/

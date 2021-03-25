@@ -21,7 +21,7 @@ run:
 
 	@echo
 	@echo "-- BUILD -------------------"
-	$(MAKE) -j -C obj_dir -f Vcpu.mk
+	$(MAKE) -j -C obj_dir -f ../Makefile_obj
 
 	@echo
 	@echo "-- RUN ---------------------"

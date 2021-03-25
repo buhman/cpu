@@ -5,8 +5,10 @@ module cpu
 ( input clk
 , input external_int
 , output [31:0] pc
+, output 	instret
 );
-   assign pc = ex_mb__pc;
+   assign pc = mb_wb__pc;
+   assign instret = mb_ex__instret;
 
    wire pipe_flush;
    wire data_hazard;
